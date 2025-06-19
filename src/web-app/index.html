@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drone Mission Planning</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Drone Mission Planning</h1>
+
+    <!-- Login Section -->
+    <div id="login-section">
+      <h2>Login</h2>
+      <form id="login-form">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+      </form>
+      <div id="login-message"></div>
+    </div>
+
+    <!-- File Upload and Mission Processing Section -->
+    <div id="upload-section" style="display: none;">
+      <h2>Upload Mission Files</h2>
+      <form id="upload-form" enctype="multipart/form-data">
+        <input type="file" id="missionFile" name="missionFile" required>
+        <button type="submit">Upload File</button>
+      </form>
+      <div id="upload-message"></div>
+      
+      <!-- NEW: area for the Python file‐read report -->
+      <h2>File Read Report</h2>
+      <div id="report-message"></div>
+      
+      <h2>Mission Processing</h2>
+      <form id="mission-form">
+        <textarea id="missionData" placeholder='Enter mission configuration JSON here' rows="5" required></textarea>
+        <button type="submit">Process Mission</button>
+      </form>
+      <div id="mission-message"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
