@@ -5,7 +5,4 @@ const fileController = require('../controllers/fileController');
 // POST /api/files/upload
 router.post('/upload', fileController.uploadFiles);
 
-// POST /api/files/process
-router.post('/process', fileController.processFile);
-
 module.exports = router;
