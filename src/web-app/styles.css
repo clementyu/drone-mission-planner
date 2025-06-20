@@ -26,4 +26,17 @@ input, button {
   padding: 10px;
   margin: 5px 0;
 }
+
+.camera-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+#cameraPreview {
+  width: 100%;
+  height: 200px;
+  background: #000;
+  margin: 10px 0;
+}
   
