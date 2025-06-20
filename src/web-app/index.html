@@ -13,9 +13,15 @@
 
     <input type="file" id="fileInput" accept=".kml,.kmz">
     <div id="map"></div>
-    <label for="cameraAngle">Camera Angle
-      <input type="number" id="cameraAngle" value="0">
-    </label>
+    <div class="camera-controls">
+      <label for="cameraTilt">Camera Tilt
+        <input type="number" id="cameraTilt" value="0">
+      </label>
+      <label for="cameraPan">Camera Pan
+        <input type="number" id="cameraPan" value="0">
+      </label>
+    </div>
+    <video id="cameraPreview" autoplay playsinline></video>
     <button id="exportBtn">Export Edited KML</button>
   </div>
 
