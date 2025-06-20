@@ -3,46 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drone Flight Editor</title>
+  <title>Drone Mission Uploader</title>
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 </head>
 <body>
   <div class="container">
-    <h1>Drone Flight Editor</h1>
-
+    <h1>Upload Mission File</h1>
     <input type="file" id="fileInput" accept=".kml,.kmz">
     <div id="map"></div>
-    <label for="cameraTilt">Camera Tilt
-      <input type="number" id="cameraTilt" value="0">
-    </label>
-    <label for="cameraPan">Camera Pan
-      <input type="number" id="cameraPan" value="0">
-    </label>
-    <button id="exportBtn">Export Edited KML</button>
+    <button id="downloadBtn">Download Processed KML</button>
+    <p id="status"></p>
   </div>
-
-  <ul id="contextMenu" class="context-menu" style="display:none">
-    <li data-action="add">Add Waypoint</li>
-    <li data-action="remove">Remove Waypoint</li>
-    <li data-action="edit">Edit</li>
-  </ul>
-
-  <div id="editDialog" class="modal" style="display:none">
-    <div class="modal-content">
-      <h3>Edit Waypoint</h3>
-      <form id="editForm">
-        <div id="editFields"></div>
-        <button type="submit">Save</button>
-        <button type="button" id="cancelEdit">Cancel</button>
-      </form>
-    </div>
-  </div>
-
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/@tmcw/togeojson"></script>
-  <script src="https://unpkg.com/jszip/dist/jszip.js"></script>
-  <script src="https://unpkg.com/tokml/tokml.js"></script>
   <script src="app.js"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
 </body>
 </html>
