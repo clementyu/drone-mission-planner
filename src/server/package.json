@@ -1,15 +1,14 @@
 {
-    "name": "drone-mission-server",
-    "version": "1.0.0",
-    "description": "Backend for Web-Based Drone Mission Planning",
-    "main": "server.js",
-    "scripts": {
-      "start": "node server.js"
-    },
-    "dependencies": {
-      "express": "^4.18.2",
-      "express-fileupload": "^1.4.0",
-      "axios": "^1.4.0",
-    }
+  "name": "drone-mission-server",
+  "version": "1.0.0",
+  "description": "Backend for Drone Flight Editor",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.0",
+    "axios": "^1.4.0"
+  }
 }
-  
