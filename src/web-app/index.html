@@ -13,10 +13,30 @@
 
     <input type="file" id="fileInput" accept=".kml,.kmz">
     <div id="map"></div>
-    <label for="cameraAngle">Camera Angle
-      <input type="number" id="cameraAngle" value="0">
+    <label for="cameraTilt">Camera Tilt
+      <input type="number" id="cameraTilt" value="0">
+    </label>
+    <label for="cameraPan">Camera Pan
+      <input type="number" id="cameraPan" value="0">
     </label>
     <button id="exportBtn">Export Edited KML</button>
+  </div>
+
+  <ul id="contextMenu" class="context-menu" style="display:none">
+    <li data-action="add">Add Waypoint</li>
+    <li data-action="remove">Remove Waypoint</li>
+    <li data-action="edit">Edit</li>
+  </ul>
+
+  <div id="editDialog" class="modal" style="display:none">
+    <div class="modal-content">
+      <h3>Edit Waypoint</h3>
+      <form id="editForm">
+        <div id="editFields"></div>
+        <button type="submit">Save</button>
+        <button type="button" id="cancelEdit">Cancel</button>
+      </form>
+    </div>
   </div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
