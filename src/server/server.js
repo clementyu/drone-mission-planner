@@ -15,7 +15,6 @@ app.use(fileUpload());
 app.use(express.static(path.join(__dirname, '../web-app')));
 
 // API Routes
-app.use('/api/auth', require('./routes/auth'));
 app.use('/api/files', require('./routes/fileUpload'));
 app.use('/api/files', require('./routes/fileReport'));
 app.use('/api/mission', require('./routes/mission'));
