@@ -10,7 +10,7 @@ require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const PYTHON_BACKEND_URL = 'http://localhost:5000';
+const PYTHON_BACKEND_URL = 'http://localhost:5001'; // Make sure this port is correct
 
 // --- Middleware ---
 app.use(express.json());
@@ -49,18 +49,20 @@ app.post('/api/files/process', async (req, res) => {
     response.data.pipe(res);
 
   } catch (err) {
-    // --- THIS IS THE FIX ---
-    // Extract a simple, clean error message instead of the complex object.
-    let simpleErrorMessage = "An unexpected error occurred.";
-    if (err.response && err.response.data) {
-        // If the Python server sent a specific error, use it.
-        simpleErrorMessage = err.response.data.error || JSON.stringify(err.response.data);
-    } else if (err.message) {
-        // Otherwise, use the general error message.
-        simpleErrorMessage = err.message;
+    // --- ROBUST ERROR HANDLING FIX ---
+    let simpleErrorMessage = "An unexpected error occurred while contacting the Python backend.";
+    if (err.response) {
+      // Handle errors from the Python server (like 403 Forbidden from AirPlay)
+      simpleErrorMessage = `Error: Received status code ${err.response.status} (${err.response.statusText})`;
+    } else if (err.request) {
+      // Handle network errors (e.g., Python server is not running)
+      simpleErrorMessage = "Error: Could not connect to the Python backend. Is it running?";
+    } else {
+      // Handle other errors
+      simpleErrorMessage = err.message;
     }
     console.error("Error proxying to Python:", simpleErrorMessage);
-    res.status(500).json({ success: false, message: 'Error processing file with Python backend.', details: simpleErrorMessage });
+    res.status(500).json({ success: false, message: 'Error processing file.', details: simpleErrorMessage });
   }
 });
 
