@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>San Francisco Drone Mission</name>
+    <description>Mission including waypoints, a flight path, and a survey area.</description>
+
+    <Style id="surveyAreaStyle">
+      <LineStyle>
+        <color>ff0000ff</color> <width>2</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>400000ff</color> </PolyStyle>
+    </Style>
+
+    <Placemark>
+      <name>Crissy Field Survey Area</name>
+      <styleUrl>#surveyAreaStyle</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              -122.465,37.805,0
+              -122.450,37.806,0
+              -122.450,37.798,0
+              -122.465,37.797,0
+              -122.465,37.805,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+
+    <Placemark>
+      <name>Golden Gate Flight Path</name>
+      <LineString>
+        <coordinates>
+          -122.476,37.807,100
+          -122.478,37.819,120
+          -122.480,37.830,100
+        </coordinates>
+      </LineString>
+    </Placemark>
+
+    <Placemark>
+      <name>Waypoint 1: Fort Mason</name>
+      <Point>
+        <coordinates>-122.428,37.807,50</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Waypoint 2: Alcatraz View</name>
+      <Point>
+        <coordinates>-122.423,37.826,50</coordinates>
+      </Point>
+    </Placemark>
+    
+  </Document>
+</kml>

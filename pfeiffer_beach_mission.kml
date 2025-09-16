@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Pfeiffer Beach Drone Mission</name>
+    <description>A scenic drone flight path around Pfeiffer Beach and Keyhole Rock in Big Sur, California.</description>
+    
+    <Placemark>
+      <name>Waypoint 1: North Overlook</name>
+      <Point>
+        <coordinates>-121.8160,36.2400,50</coordinates>
+      </Point>
+    </Placemark>
+    
+    <Placemark>
+      <name>Waypoint 2: Keyhole Rock View</name>
+      <Point>
+        <coordinates>-121.8175,36.2385,40</coordinates>
+      </Point>
+    </Placemark>
+    
+    <Placemark>
+      <name>Waypoint 3: South Cove</name>
+      <Point>
+        <coordinates>-121.8145,36.2365,50</coordinates>
+      </Point>
+    </Placemark>
+    
+    <Placemark>
+      <name>Waypoint 4: Offshore Panorama</name>
+      <Point>
+        <coordinates>-121.8200,36.2370,100</coordinates>
+      </Point>
+    </Placemark>
+
+  </Document>
+</kml>

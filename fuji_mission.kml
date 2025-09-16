@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Mount Fuji Scenic Flight</name>
+    <description>A mission with a blue flight path around Mount Fuji.</description>
+
+    <Style id="flightPathStyle">
+      <LineStyle>
+        <color>ffff0000</color> <width>3</width>
+      </LineStyle>
+    </Style>
+
+    <Placemark>
+      <name>Flight Path</name>
+      <styleUrl>#flightPathStyle</styleUrl>
+      <LineString>
+        <tessellate>1</tessellate>
+        <coordinates>
+          138.72,35.35,3000
+          138.75,35.36,3200
+          138.73,35.38,3200
+          138.70,35.37,3000
+        </coordinates>
+      </LineString>
+    </Placemark>
+
+    <Placemark>
+      <name>1: South Approach</name>
+      <Point>
+        <coordinates>138.72,35.35,3000</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>2: East Ridge</name>
+      <Point>
+        <coordinates>138.75,35.36,3200</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>3: North Slope</name>
+      <Point>
+        <coordinates>138.73,35.38,3200</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>4: West Overlook</name>
+      <Point>
+        <coordinates>138.70,35.37,3000</coordinates>
+      </Point>
+    </Placemark>
+
+  </Document>
+</kml>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Statue of Liberty Indexed Mission</name>
+    <description>A mission with numbered waypoints and a connecting flight path.</description>
+
+    <Style id="flightPathStyle">
+      <LineStyle>
+        <color>ff00ff00</color> <width>3</width>
+      </LineStyle>
+    </Style>
+
+    <Placemark>
+      <name>Flight Path</name>
+      <styleUrl>#flightPathStyle</styleUrl>
+      <LineString>
+        <tessellate>1</tessellate>
+        <coordinates>
+          -74.04,40.685,50
+          -74.047,40.688,75
+          -74.045,40.692,75
+          -74.042,40.689,50
+        </coordinates>
+      </LineString>
+    </Placemark>
+
+    <Placemark>
+      <name>1: Start Point</name>
+      <Point>
+        <coordinates>-74.04,40.685,50</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>2: West View</name>
+      <Point>
+        <coordinates>-74.047,40.688,75</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>3: North View</name>
+      <Point>
+        <coordinates>-74.045,40.692,75</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>4: East View</name>
+      <Point>
+        <coordinates>-74.042,40.689,50</coordinates>
+      </Point>
+    </Placemark>
+
+  </Document>
+</kml>

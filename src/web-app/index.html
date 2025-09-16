@@ -8,13 +8,28 @@
 </head>
 <body>
   <div class="container">
-    <h1>Upload Mission File</h1>
+    <h1 class="title">Upload Mission File</h1>
+    
+    <label for="fileInput" class="file-input-label">
+      Upload a KML/KMZ File
+    </label>
     <input type="file" id="fileInput" accept=".kml,.kmz">
-    <div id="map"></div>
+    
+    <div class="map-container">
+      <div id="map"></div>
+      <div class="view-switch">
+        <label for="mapToggle">Map</label>
+        <label class="switch">
+          <input type="checkbox" id="mapToggle" checked>
+          <span class="slider"></span>
+        </label>
+        <label for="mapToggle">Earth</label>
+      </div>
+    </div>
+
     <button id="downloadBtn">Download Processed KML</button>
-    <p id="status"></p>
+    <p id="status">Select a mission file to see a preview.</p>
   </div>
   <script src="app.js"></script>
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
 </body>
 </html>
