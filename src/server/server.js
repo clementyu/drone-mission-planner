@@ -4,8 +4,8 @@ const fileUpload = require('express-fileupload');
 const JSZip = require('jszip');
 const { DOMParser } = require('xmldom');
 const tj = require('@tmcw/togeojson');
-const axios = require('axios'); // Use axios for proxying
-const FormData = require('form-data'); // To send multipart/form-data
+const axios = require('axios');
+const FormData = require('form-data');
 require('dotenv').config();
 
 const app = express();
@@ -22,12 +22,10 @@ app.use(express.static(path.join(__dirname, '../web-app')));
 
 // --- API Routes ---
 
-// Route to provide the Google Maps API key
 app.get('/api/maps/api-key', (req, res) => {
   res.json({ apiKey: process.env.GOOGLE_MAPS_API_KEY });
 });
 
-// MODIFIED: Proxy the file processing to the Python backend
 app.post('/api/files/process', async (req, res) => {
   if (!req.files || !req.files.missionFile) {
     return res.status(400).json({ success: false, message: 'No files were uploaded.' });
@@ -35,36 +33,37 @@ app.post('/api/files/process', async (req, res) => {
 
   try {
     const missionFile = req.files.missionFile;
-    
-    // Create a new form and append the file data
     const form = new FormData();
     form.append('missionFile', missionFile.data, {
       filename: missionFile.name,
       contentType: missionFile.mimetype,
     });
 
-    // Post the form to the Python backend
     const response = await axios.post(`${PYTHON_BACKEND_URL}/process-kml`, form, {
-      headers: {
-        ...form.getHeaders(),
-      },
-      responseType: 'stream', // Important to handle the response as a stream
+      headers: { ...form.getHeaders() },
+      responseType: 'stream',
     });
 
-    // Pipe the response from Python back to the client
     res.setHeader('Content-Type', response.headers['content-type']);
     res.setHeader('Content-Disposition', response.headers['content-disposition']);
     response.data.pipe(res);
 
   } catch (err) {
-    const errorMessage = err.response ? err.response.data : err.message;
-    console.error("Error proxying to Python:", errorMessage);
-    res.status(500).json({ success: false, message: 'Error processing file with Python backend.', details: errorMessage });
+    // --- THIS IS THE FIX ---
+    // Extract a simple, clean error message instead of the complex object.
+    let simpleErrorMessage = "An unexpected error occurred.";
+    if (err.response && err.response.data) {
+        // If the Python server sent a specific error, use it.
+        simpleErrorMessage = err.response.data.error || JSON.stringify(err.response.data);
+    } else if (err.message) {
+        // Otherwise, use the general error message.
+        simpleErrorMessage = err.message;
+    }
+    console.error("Error proxying to Python:", simpleErrorMessage);
+    res.status(500).json({ success: false, message: 'Error processing file with Python backend.', details: simpleErrorMessage });
   }
 });
 
-
-// This route is still used for the MAP PREVIEW, not the download. No changes needed here.
 app.post('/api/files/preview', async (req, res) => {
   if (!req.files || Object.keys(req.files).length === 0) {
     return res.status(400).json({ success: false, message: 'No files were uploaded.' });
@@ -93,7 +92,6 @@ app.post('/api/files/preview', async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
-
 
 // --- Server Start ---
 app.listen(port, () => {
