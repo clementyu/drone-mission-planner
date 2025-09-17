@@ -4,7 +4,8 @@ const downloadBtn = document.getElementById('downloadBtn');
 
 const mapBtn = document.getElementById('mapBtn');
 const earthBtn = document.getElementById('earthBtn');
-const maptilerBtn = document.getElementById('maptilerBtn');
+const maptilerStreetsBtn = document.getElementById('maptilerStreetsBtn');
+const maptilerSatelliteBtn = document.getElementById('maptilerSatelliteBtn');
 const cesiumBtn = document.getElementById('cesiumBtn');
 
 const mapContainer = document.getElementById('map');
@@ -15,6 +16,7 @@ let selectedFile = null;
 let googleMap;
 let googleDataLayer;
 let maptilerMap;
+let maptilerApiKey;
 let cesiumViewer;
 let currentGeoJson = null;
 let currentView = 'map';
@@ -44,12 +46,11 @@ async function initializeMaptiler() {
     const res = await fetch('/api/maptiler/key');
     const { apiKey } = await res.json();
     if (!apiKey) throw new Error('Maptiler API key not found');
+    maptilerApiKey = apiKey; // Store the key for later use
 
-    const mapStyle = `https://api.maptiler.com/maps/satellite/style.json?key=${apiKey}`;
-    
     maptilerMap = new maplibregl.Map({
       container: 'maptilerContainer',
-      style: mapStyle,
+      style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${maptilerApiKey}`,
       center: [0, 0],
       zoom: 1
     });
@@ -87,27 +88,41 @@ window.initGoogleMap = function() {
 function switchView(view) {
   currentView = view;
   
+  // Update button styles
   mapBtn.classList.toggle('active', view === 'map');
   earthBtn.classList.toggle('active', view === 'earth');
-  maptilerBtn.classList.toggle('active', view === 'maptiler');
+  maptilerStreetsBtn.classList.toggle('active', view === 'maptilerStreets');
+  maptilerSatelliteBtn.classList.toggle('active', view === 'maptilerSatellite');
   cesiumBtn.classList.toggle('active', view === 'cesium');
 
+  // Toggle container visibility
+  const isMaptiler = view === 'maptilerStreets' || view === 'maptilerSatellite';
   mapContainer.style.display = (view === 'map' || view === 'earth') ? 'block' : 'none';
-  maptilerContainer.style.display = view === 'maptiler' ? 'block' : 'none';
+  maptilerContainer.style.display = isMaptiler ? 'block' : 'none';
   cesiumContainer.style.display = view === 'cesium' ? 'block' : 'none';
 
+  // Configure the specific view
   if (view === 'map') googleMap.setMapTypeId('roadmap');
   if (view === 'earth') googleMap.setMapTypeId('satellite');
+  if (view === 'maptilerStreets') {
+    maptilerMap.setStyle(`https://api.maptiler.com/maps/streets-v2/style.json?key=${maptilerApiKey}`);
+  }
+  if (view === 'maptilerSatellite') {
+    maptilerMap.setStyle(`https://api.maptiler.com/maps/satellite/style.json?key=${maptilerApiKey}`);
+  }
   
   if (currentGeoJson) {
     updateMapData(currentGeoJson);
   }
 }
 
+// Add event listeners for all buttons
 mapBtn.addEventListener('click', () => switchView('map'));
 earthBtn.addEventListener('click', () => switchView('earth'));
-maptilerBtn.addEventListener('click', () => switchView('maptiler'));
+maptilerStreetsBtn.addEventListener('click', () => switchView('maptilerStreets'));
+maptilerSatelliteBtn.addEventListener('click', () => switchView('maptilerSatellite'));
 cesiumBtn.addEventListener('click', () => switchView('cesium'));
+
 
 // --- FILE HANDLING ---
 
@@ -132,29 +147,39 @@ fileInput.addEventListener('change', async (e) => {
 });
 
 async function updateMapData(geojson) {
+  // This function needs to handle Maptiler style changes, so we wait for the style to load
+  // before adding layers back.
+  const loadMaptilerData = () => {
+    if (maptilerMap.getSource('missionData')) {
+        maptilerMap.removeLayer('points');
+        maptilerMap.removeLayer('lines');
+        maptilerMap.removeSource('missionData');
+    }
+    maptilerMap.addSource('missionData', { type: 'geojson', data: geojson });
+    maptilerMap.addLayer({ id: 'lines', type: 'line', source: 'missionData', paint: { 'line-color': '#00FFFF', 'line-width': 3 } });
+    maptilerMap.addLayer({ id: 'points', type: 'circle', source: 'missionData', paint: { 'circle-radius': 5, 'circle-color': '#FFFFFF', 'circle-stroke-color': '#00FFFF', 'circle-stroke-width': 2 } });
+  };
+  
   // Clear previous data
   googleDataLayer.forEach(f => googleDataLayer.remove(f));
-  if (maptilerMap.getSource('missionData')) {
-    maptilerMap.removeLayer('points');
-    maptilerMap.removeLayer('lines');
-    maptilerMap.removeSource('missionData');
-  }
   cesiumViewer.dataSources.removeAll();
 
-  // Load data into viewers
+  // Load data into all viewers
   googleDataLayer.addGeoJson(geojson);
   
-  maptilerMap.addSource('missionData', { type: 'geojson', data: geojson });
-  maptilerMap.addLayer({ id: 'lines', type: 'line', source: 'missionData', paint: { 'line-color': '#00FFFF', 'line-width': 3 } });
-  maptilerMap.addLayer({ id: 'points', type: 'circle', source: 'missionData', paint: { 'circle-radius': 5, 'circle-color': '#FFFFFF', 'circle-stroke-color': '#00FFFF', 'circle-stroke-width': 2 } });
+  if (maptilerMap.isStyleLoaded()) {
+    loadMaptilerData();
+  } else {
+    maptilerMap.once('styledata', loadMaptilerData);
+  }
   
   const cesiumDataSource = await Cesium.GeoJsonDataSource.load(geojson, { stroke: Cesium.Color.CYAN, strokeWidth: 3 });
   await cesiumViewer.dataSources.add(cesiumDataSource);
 
-  // Zoom to data
+  // Zoom to data based on the current view
   if (currentView === 'cesium') {
     await cesiumViewer.flyTo(cesiumDataSource);
-  } else if (currentView === 'maptiler') {
+  } else if (currentView.startsWith('maptiler')) {
     const bounds = new maplibregl.LngLatBounds();
     geojson.features.forEach(feature => {
         if (feature.geometry.type === 'Point') {
