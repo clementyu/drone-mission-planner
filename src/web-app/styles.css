@@ -136,3 +136,61 @@ input:checked + .slider:before {
   color: #606770;
   font-size: 14px;
 }
+
+/* New styles for the unified viewer and switcher */
+.viewer-container {
+  position: relative;
+  height: 500px;
+  margin: 20px 0;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+#map, #cesiumContainer {
+  height: 100%;
+  width: 100%;
+}
+
+#cesiumContainer {
+  display: none; /* Hidden by default */
+}
+
+.view-switcher {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.view-switcher button {
+  background-color: #e4e6eb;
+  color: #1c1e21;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.view-switcher button:first-child {
+  border-radius: 5px 0 0 5px;
+}
+
+.view-switcher button:last-child {
+  border-radius: 0 5px 5px 0;
+}
+
+.view-switcher button.active {
+  background-color: #1877f2;
+  color: white;
+}
+
+/* Update viewer container styles */
+#map, #maptilerContainer, #cesiumContainer {
+  height: 100%;
+  width: 100%;
+}
+
+#maptilerContainer, #cesiumContainer {
+  display: none; /* Hidden by default */
+}

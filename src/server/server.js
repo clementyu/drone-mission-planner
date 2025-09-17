@@ -26,6 +26,16 @@ app.get('/api/maps/api-key', (req, res) => {
   res.json({ apiKey: process.env.GOOGLE_MAPS_API_KEY });
 });
 
+// --- NEW: Route to provide the Cesium Ion Access Token ---
+app.get('/api/cesium/token', (req, res) => {
+  res.json({ token: process.env.CESIUM_ION_ACCESS_TOKEN });
+});
+
+// NEW: Route to provide the Maptiler API Key
+app.get('/api/maptiler/key', (req, res) => {
+  res.json({ apiKey: process.env.MAPTILER_API_KEY });
+});
+
 app.post('/api/files/process', async (req, res) => {
   if (!req.files || !req.files.missionFile) {
     return res.status(400).json({ success: false, message: 'No files were uploaded.' });

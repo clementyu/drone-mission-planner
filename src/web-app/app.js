@@ -1,131 +1,188 @@
 const fileInput = document.getElementById('fileInput');
 const statusEl = document.getElementById('status');
 const downloadBtn = document.getElementById('downloadBtn');
-const mapToggle = document.getElementById('mapToggle'); // Get the toggle switch
-let selectedFile = null;
-let map;
-let dataLayer;
 
-// Function to load the Google Maps script
+const mapBtn = document.getElementById('mapBtn');
+const earthBtn = document.getElementById('earthBtn');
+const maptilerBtn = document.getElementById('maptilerBtn');
+const cesiumBtn = document.getElementById('cesiumBtn');
+
+const mapContainer = document.getElementById('map');
+const maptilerContainer = document.getElementById('maptilerContainer');
+const cesiumContainer = document.getElementById('cesiumContainer');
+
+let selectedFile = null;
+let googleMap;
+let googleDataLayer;
+let maptilerMap;
+let cesiumViewer;
+let currentGeoJson = null;
+let currentView = 'map';
+
+// --- INITIALIZATION ---
+
+loadGoogleMapsScript();
+initializeMaptiler();
+initializeCesium();
+
 async function loadGoogleMapsScript() {
   try {
-    const response = await fetch('/api/maps/api-key');
-    const { apiKey } = await response.json();
-
-    if (!apiKey) {
-      console.error('API key not found');
-      statusEl.textContent = 'Google Maps API key is missing.';
-      return;
-    }
+    const res = await fetch('/api/maps/api-key');
+    const { apiKey } = await res.json();
+    if (!apiKey) throw new Error('Google Maps API key not found');
 
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
-    script.async = true;
-    script.defer = true;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initGoogleMap`;
     document.body.appendChild(script);
   } catch (error) {
-    console.error('Failed to fetch API key:', error);
-    statusEl.textContent = 'Could not load Google Maps.';
+    console.error('Failed to load Google Maps:', error);
   }
 }
 
-function initMap() {
-  map = new google.maps.Map(document.getElementById('map'), {
-    center: { lat: 40.6892, lng: -74.0445 }, // Default to Statue of Liberty
-    zoom: 17,
-    mapTypeId: 'satellite', // Default to satellite
-    tilt: 60, // Increase initial tilt for a more dramatic 3D effect
-    heading: 45,
-    tiltControl: true,
-    mapTypeControl: false, // Hide the default map type control
-    zoomControl: true,
-    streetViewControl: false,
+async function initializeMaptiler() {
+  try {
+    const res = await fetch('/api/maptiler/key');
+    const { apiKey } = await res.json();
+    if (!apiKey) throw new Error('Maptiler API key not found');
+
+    const mapStyle = `https://api.maptiler.com/maps/satellite/style.json?key=${apiKey}`;
+    
+    maptilerMap = new maplibregl.Map({
+      container: 'maptilerContainer',
+      style: mapStyle,
+      center: [0, 0],
+      zoom: 1
+    });
+  } catch (error) {
+    console.error('Failed to initialize Maptiler:', error);
+  }
+}
+
+async function initializeCesium() {
+    try {
+        const res = await fetch('/api/cesium/token');
+        const { token } = await res.json();
+        if (!token) throw new Error('Cesium token not found');
+
+        Cesium.Ion.defaultAccessToken = token;
+        cesiumViewer = new Cesium.Viewer('cesiumContainer', {
+            terrainProvider: await Cesium.Terrain.fromWorldTerrain(),
+        });
+        cesiumViewer.scene.primitives.add(await Cesium.createOsmBuildingsAsync());
+    } catch (error) {
+        console.error('Failed to initialize Cesium:', error);
+    }
+}
+
+window.initGoogleMap = function() {
+  googleMap = new google.maps.Map(mapContainer, {
+    center: { lat: 0, lng: 0 },
+    zoom: 2,
   });
-  dataLayer = new google.maps.Data({ map });
+  googleDataLayer = new google.maps.Data({ map: googleMap });
+};
+
+// --- VIEW SWITCHING ---
+
+function switchView(view) {
+  currentView = view;
+  
+  mapBtn.classList.toggle('active', view === 'map');
+  earthBtn.classList.toggle('active', view === 'earth');
+  maptilerBtn.classList.toggle('active', view === 'maptiler');
+  cesiumBtn.classList.toggle('active', view === 'cesium');
+
+  mapContainer.style.display = (view === 'map' || view === 'earth') ? 'block' : 'none';
+  maptilerContainer.style.display = view === 'maptiler' ? 'block' : 'none';
+  cesiumContainer.style.display = view === 'cesium' ? 'block' : 'none';
+
+  if (view === 'map') googleMap.setMapTypeId('roadmap');
+  if (view === 'earth') googleMap.setMapTypeId('satellite');
+  
+  if (currentGeoJson) {
+    updateMapData(currentGeoJson);
+  }
 }
 
-window.initMap = initMap;
+mapBtn.addEventListener('click', () => switchView('map'));
+earthBtn.addEventListener('click', () => switchView('earth'));
+maptilerBtn.addEventListener('click', () => switchView('maptiler'));
+cesiumBtn.addEventListener('click', () => switchView('cesium'));
 
-// Event listener for the Map/Earth toggle switch
-mapToggle.addEventListener('change', () => {
-  if (mapToggle.checked) {
-    // Switch to "Earth" View (Tilted Satellite)
-    map.setMapTypeId('satellite');
-    map.setTilt(60); // Set a strong tilt for 3D effect
-  } else {
-    // Switch to "Map" View (2D Roadmap)
-    map.setMapTypeId('roadmap');
-    map.setTilt(0); // Remove tilt for a flat 2D map
-  }
-});
-
+// --- FILE HANDLING ---
 
 fileInput.addEventListener('change', async (e) => {
   selectedFile = e.target.files[0];
   if (!selectedFile) return;
   statusEl.textContent = 'Generating preview...';
-  const formData = new FormData();
-  formData.append('missionFile', selectedFile);
 
   try {
-    const res = await fetch('/api/files/preview', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!res.ok) {
-      statusEl.textContent = 'Failed to preview file';
-      return;
-    }
-
-    const geojson = await res.json();
-    dataLayer.forEach((feature) => dataLayer.remove(feature));
-    dataLayer.addGeoJson(geojson);
-
-    if (geojson.features && geojson.features.length) {
-      const bounds = new google.maps.LatLngBounds();
-      geojson.features.forEach((f) => {
-        const coords = f.geometry.coordinates;
-        if (f.geometry.type === 'Point') {
-          bounds.extend({ lat: coords[1], lng: coords[0] });
-        } else if (f.geometry.type === 'LineString') {
-          coords.forEach((c) => bounds.extend({ lat: c[1], lng: c[0] }));
-        } else if (f.geometry.type === 'Polygon') {
-          coords[0].forEach((c) => bounds.extend({ lat: c[1], lng: c[0] }));
-        }
-      });
-      map.fitBounds(bounds);
-      // After fitting bounds, apply the current view mode (tilt)
-      if (mapToggle.checked) {
-          map.setTilt(60);
-      }
-    }
+    const formData = new FormData();
+    formData.append('missionFile', selectedFile);
+    const res = await fetch('/api/files/preview', { method: 'POST', body: formData });
+    if (!res.ok) throw new Error('Failed to get preview');
+    
+    currentGeoJson = await res.json();
+    await updateMapData(currentGeoJson);
     statusEl.textContent = 'Preview loaded';
   } catch (err) {
-    statusEl.textContent = 'Error generating preview';
+    statusEl.textContent = 'Error generating preview.';
+    console.error(err);
   }
 });
 
-downloadBtn.addEventListener('click', async () => {
-  if (!selectedFile) {
-    statusEl.textContent = 'No file selected';
-    return;
+async function updateMapData(geojson) {
+  // Clear previous data
+  googleDataLayer.forEach(f => googleDataLayer.remove(f));
+  if (maptilerMap.getSource('missionData')) {
+    maptilerMap.removeLayer('points');
+    maptilerMap.removeLayer('lines');
+    maptilerMap.removeSource('missionData');
   }
+  cesiumViewer.dataSources.removeAll();
+
+  // Load data into viewers
+  googleDataLayer.addGeoJson(geojson);
+  
+  maptilerMap.addSource('missionData', { type: 'geojson', data: geojson });
+  maptilerMap.addLayer({ id: 'lines', type: 'line', source: 'missionData', paint: { 'line-color': '#00FFFF', 'line-width': 3 } });
+  maptilerMap.addLayer({ id: 'points', type: 'circle', source: 'missionData', paint: { 'circle-radius': 5, 'circle-color': '#FFFFFF', 'circle-stroke-color': '#00FFFF', 'circle-stroke-width': 2 } });
+  
+  const cesiumDataSource = await Cesium.GeoJsonDataSource.load(geojson, { stroke: Cesium.Color.CYAN, strokeWidth: 3 });
+  await cesiumViewer.dataSources.add(cesiumDataSource);
+
+  // Zoom to data
+  if (currentView === 'cesium') {
+    await cesiumViewer.flyTo(cesiumDataSource);
+  } else if (currentView === 'maptiler') {
+    const bounds = new maplibregl.LngLatBounds();
+    geojson.features.forEach(feature => {
+        if (feature.geometry.type === 'Point') {
+            bounds.extend(feature.geometry.coordinates);
+        } else if (feature.geometry.type === 'LineString') {
+            feature.geometry.coordinates.forEach(coord => bounds.extend(coord));
+        }
+    });
+    if (!bounds.isEmpty()) maptilerMap.fitBounds(bounds, { padding: 50 });
+  } else {
+    const bounds = new google.maps.LatLngBounds();
+    googleDataLayer.forEach(f => f.getGeometry().forEachLatLng(ll => bounds.extend(ll)));
+    googleMap.fitBounds(bounds);
+  }
+}
+
+downloadBtn.addEventListener('click', async () => {
+  if (!selectedFile) return;
   statusEl.textContent = 'Processing...';
   const formData = new FormData();
   formData.append('missionFile', selectedFile);
 
   try {
-    const res = await fetch('/api/files/process', {
-      method: 'POST',
-      body: formData,
-    });
-
+    const res = await fetch('/api/files/process', { method: 'POST', body: formData });
     if (!res.ok) {
-      statusEl.textContent = 'Failed to process file';
-      return;
+        const errData = await res.json();
+        throw new Error(errData.details || 'Failed to process file');
     }
-
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -135,9 +192,6 @@ downloadBtn.addEventListener('click', async () => {
     URL.revokeObjectURL(url);
     statusEl.textContent = 'Download started';
   } catch (err) {
-    statusEl.textContent = 'Error uploading file';
+    statusEl.textContent = `Error: ${err.message}`;
   }
 });
-
-// Load the Google Maps script on page load
-loadGoogleMapsScript();

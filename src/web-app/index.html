@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Drone Mission Uploader</title>
+  <link href='https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css' rel='stylesheet' />
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,21 +17,25 @@
     </label>
     <input type="file" id="fileInput" accept=".kml,.kmz">
     
-    <div class="map-container">
+    <div class="viewer-container">
       <div id="map"></div>
-      <div class="view-switch">
-        <label for="mapToggle">Map</label>
-        <label class="switch">
-          <input type="checkbox" id="mapToggle" checked>
-          <span class="slider"></span>
-        </label>
-        <label for="mapToggle">Earth</label>
-      </div>
+      <div id="maptilerContainer"></div>
+      <div id="cesiumContainer"></div>
+    </div>
+
+    <div class="view-switcher">
+      <button id="mapBtn" class="active">Map</button>
+      <button id="earthBtn">Earth</button>
+      <button id="maptilerBtn">Maptiler</button>
+      <button id="cesiumBtn">Cesium 3D</button>
     </div>
 
     <button id="downloadBtn">Download Processed KML</button>
     <p id="status">Select a mission file to see a preview.</p>
   </div>
+  
+  <script src='https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js'></script>
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/Cesium.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
