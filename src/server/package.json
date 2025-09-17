@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "setup:env": "cp -n env-template.env .env || true",
     "dev": "concurrently \"npm start\" \"python ../python-backend/backend.py\""
   },
   "dependencies": {
