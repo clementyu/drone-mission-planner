@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Drone Mission Uploader</title>
+  <!-- Add MapLibre and CesiumJS CSS -->
   <link href='https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css' rel='stylesheet' />
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
@@ -23,6 +24,7 @@
       <div id="cesiumContainer"></div>
     </div>
 
+    <!-- 5-Way View Switcher -->
     <div class="view-switcher">
       <button id="mapBtn" class="active">Map</button>
       <button id="earthBtn">Earth</button>
@@ -31,10 +33,45 @@
       <button id="cesiumBtn">Cesium 3D</button>
     </div>
 
-    <button id="downloadBtn">Download Processed KML</button>
-    <p id="status">Select a mission file to see a preview.</p>
+    <div class="action-buttons">
+        <button id="downloadBtn">Download Processed KML</button>
+        <button id="saveBtn">Save Mission</button>
+    </div>
+    <p id="status">Select a mission file or right-click on the map to begin.</p>
   </div>
+
+  <!-- START: Missing HTML to be added -->
+  <!-- Right-click Context Menu -->
+  <div id="contextMenu" class="context-menu">
+    <ul>
+      <li id="addWaypoint">Add Waypoint</li>
+      <li id="editWaypoint" class="disabled">Edit Waypoint</li>
+      <li id="deleteWaypoint" class="disabled">Delete Waypoint</li>
+    </ul>
+  </div>
+
+  <!-- Waypoint Editor Modal -->
+  <div id="waypointModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h2 id="modalTitle">Edit Waypoint</h2>
+      <form id="waypointForm">
+        <input type="hidden" id="waypointId">
+        <label for="latitude">Latitude:</label>
+        <input type="text" id="latitude" required>
+        <label for="longitude">Longitude:</label>
+        <input type="text" id="longitude" required>
+        <label for="altitude">Altitude (meters):</label>
+        <input type="number" id="altitude" value="50">
+        <label for="speed">Drone Speed (m/s):</label>
+        <input type="number" id="speed" value="10">
+        <button type="submit">Save</button>
+      </form>
+    </div>
+  </div>
+  <!-- END: Missing HTML to be added -->
   
+  <!-- Load MapLibre and CesiumJS -->
   <script src='https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js'></script>
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/Cesium.js"></script>
   <script src="app.js"></script>
