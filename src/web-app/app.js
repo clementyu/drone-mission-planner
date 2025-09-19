@@ -66,10 +66,16 @@ document.addEventListener('DOMContentLoaded', () => {
             maptilerMap.on('contextmenu', handleMaptilerRightClick);
             maptilerMap.on('mouseenter', 'points', () => { maptilerMap.getCanvas().style.cursor = 'pointer'; });
             maptilerMap.on('mouseleave', 'points', () => { maptilerMap.getCanvas().style.cursor = ''; });
-
-            // THIS IS THE FIX: Set the initial view after Maptiler is ready
+            
+            // THE FIX: Set the initial view and add a permanent data-reload listener
+            // only after the map is fully loaded for the first time.
             maptilerMap.on('load', () => {
                 switchView('maptilerStreets');
+                maptilerMap.on('styledata', () => {
+                    if (maptilerMap.isStyleLoaded()) {
+                        updateMapData(currentGeoJson);
+                    }
+                });
             });
 
         } catch (error) { console.error('Failed to initialize Maptiler:', error); }
@@ -102,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- VIEW SWITCHING ---
     function switchView(view) {
+        if (!maptilerMap || !googleMap || !cesiumViewer) return; // Prevent running before init
         currentView = view;
         Object.keys(viewButtons).forEach(key => {
             if (viewButtons[key]) {
@@ -114,18 +121,19 @@ document.addEventListener('DOMContentLoaded', () => {
         viewers.maptiler.style.display = isMaptiler ? 'block' : 'none';
         viewers.cesium.style.display = view === 'cesium' ? 'block' : 'none';
         
-        if (view === 'map' && googleMap) googleMap.setMapTypeId('roadmap');
-        if (view === 'earth' && googleMap) googleMap.setMapTypeId('satellite');
-        if (view === 'maptilerStreets' && maptilerMap) {
+        if (view === 'map') googleMap.setMapTypeId('roadmap');
+        if (view === 'earth') googleMap.setMapTypeId('satellite');
+        
+        // This is now safe because switchView is only called after init
+        if (view === 'maptilerStreets') {
             maptilerMap.setStyle(`https://api.maptiler.com/maps/streets-v2/style.json?key=${maptilerApiKey}`);
         }
-        if (view === 'maptiler3d' && maptilerMap) {
+        if (view === 'maptiler3d') {
             maptilerMap.setStyle(`https://api.maptiler.com/maps/satellite/style.json?key=${maptilerApiKey}`);
         }
         
-        if (isMaptiler) {
-            maptilerMap.once('styledata', () => updateMapData(currentGeoJson));
-        } else {
+        // Non-Maptiler views don't need the 'styledata' event, so update them directly
+        if (!isMaptiler) {
             updateMapData(currentGeoJson);
         }
     }
@@ -390,6 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function updateMapData(geojson) {
+        if (!geojson) return;
         currentGeoJson = geojson;
         renderWaypointList();
         updateMapHighlights();
@@ -397,29 +406,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const altitudeLines = generateAltitudeLines(geojson);
 
         const loadMaptilerData = () => {
-            if (maptilerMap.getSource('missionData')) {
-                maptilerMap.getSource('missionData').setData(geojson);
-            } else {
-                maptilerMap.addSource('missionData', { type: 'geojson', data: geojson });
-                maptilerMap.addLayer({ id: 'lines', type: 'line', source: 'missionData', paint: { 'line-color': '#00FFFF', 'line-width': 3 }, filter: ['==', '$type', 'LineString'] });
-                maptilerMap.addLayer({ id: 'points', type: 'circle', source: 'missionData', paint: { 'circle-radius': 5, 'circle-stroke-width': 2 }, filter: ['==', '$type', 'Point'] });
-            }
+             // Remove old layers and sources before adding new ones
+            if (maptilerMap.getLayer('points')) maptilerMap.removeLayer('points');
+            if (maptilerMap.getLayer('lines')) maptilerMap.removeLayer('lines');
+            if (maptilerMap.getLayer('altitude-lines')) maptilerMap.removeLayer('altitude-lines');
+            if (maptilerMap.getSource('missionData')) maptilerMap.removeSource('missionData');
+            if (maptilerMap.getSource('altitudeLines')) maptilerMap.removeSource('altitudeLines');
+           
+            maptilerMap.addSource('missionData', { type: 'geojson', data: geojson });
+            maptilerMap.addLayer({ id: 'lines', type: 'line', source: 'missionData', paint: { 'line-color': '#00FFFF', 'line-width': 3 }, filter: ['==', '$type', 'LineString'] });
+            maptilerMap.addLayer({ id: 'points', type: 'circle', source: 'missionData', paint: { 'circle-radius': 5, 'circle-stroke-width': 2 }, filter: ['==', '$type', 'Point'] });
+            
+            maptilerMap.addSource('altitudeLines', { type: 'geojson', data: altitudeLines });
+            maptilerMap.addLayer({
+                id: 'altitude-lines',
+                type: 'line',
+                source: 'altitudeLines',
+                paint: {
+                    'line-color': '#FFFFFF',
+                    'line-width': 1,
+                    'line-dasharray': [2, 2]
+                }
+            });
 
-            if (maptilerMap.getSource('altitudeLines')) {
-                maptilerMap.getSource('altitudeLines').setData(altitudeLines);
-            } else {
-                maptilerMap.addSource('altitudeLines', { type: 'geojson', data: altitudeLines });
-                maptilerMap.addLayer({
-                    id: 'altitude-lines',
-                    type: 'line',
-                    source: 'altitudeLines',
-                    paint: {
-                        'line-color': '#FFFFFF',
-                        'line-width': 1,
-                        'line-dasharray': [2, 2]
-                    }
-                });
-            }
+            updateMapHighlights(); // Re-apply highlights after layers are added
 
             if (currentView === 'maptiler3d') {
                 if (!maptilerMap.getSource('maptiler-dem')) {
@@ -431,38 +441,40 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
         
-        googleDataLayer.forEach(f => googleDataLayer.remove(f));
-        googleDataLayer.addGeoJson(geojson);
+        if(googleDataLayer) {
+            googleDataLayer.forEach(f => googleDataLayer.remove(f));
+            googleDataLayer.addGeoJson(geojson);
+        }
         
         if (maptilerMap && maptilerMap.isStyleLoaded()) {
             loadMaptilerData();
-        } else if (maptilerMap) {
-            maptilerMap.once('styledata', loadMaptilerData);
-        }
+        } 
         
-        cesiumViewer.dataSources.removeAll();
-        const cesiumDataSource = await Cesium.GeoJsonDataSource.load(geojson, { stroke: Cesium.Color.CYAN, strokeWidth: 3 });
-        await cesiumViewer.dataSources.add(cesiumDataSource);
+        if(cesiumViewer) {
+            cesiumViewer.dataSources.removeAll();
+            const cesiumDataSource = await Cesium.GeoJsonDataSource.load(geojson, { stroke: Cesium.Color.CYAN, strokeWidth: 3 });
+            await cesiumViewer.dataSources.add(cesiumDataSource);
 
-        altitudeLines.features.forEach(line => {
-            const positions = line.geometry.coordinates.flat();
-            cesiumViewer.entities.add({
-                polyline: {
-                    positions: Cesium.Cartesian3.fromDegreesArrayHeights(positions),
-                    width: 1,
-                    material: new Cesium.PolylineDashMaterialProperty({
-                        color: Cesium.Color.WHITE,
-                    }),
-                },
+            altitudeLines.features.forEach(line => {
+                const positions = line.geometry.coordinates.flat();
+                cesiumViewer.entities.add({
+                    polyline: {
+                        positions: Cesium.Cartesian3.fromDegreesArrayHeights(positions),
+                        width: 1,
+                        material: new Cesium.PolylineDashMaterialProperty({
+                            color: Cesium.Color.WHITE,
+                        }),
+                    },
+                });
             });
-        });
+        }
 
         zoomToFit();
     }
 
     function zoomToFit() {
         if (!currentGeoJson || currentGeoJson.features.length === 0) return;
-        if (currentView === 'cesium') {
+        if (currentView === 'cesium' && cesiumViewer.dataSources.length > 0) {
             cesiumViewer.flyTo(cesiumViewer.dataSources.get(0));
         } else if (currentView.startsWith('maptiler')) {
             const bounds = new maplibregl.LngLatBounds();

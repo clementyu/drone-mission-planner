@@ -115,7 +115,7 @@ body {
   width: 100%;
 }
 
-#maptilerContainer, #cesiumContainer {
+#map, #cesiumContainer {
   display: none;
 }
 
@@ -176,7 +176,7 @@ body {
     text-align: center;
 }
 
-/* Context Menu & Modal Styles remain the same */
+/* Context Menu & Modal Styles */
 .context-menu {
   display: none;
   position: absolute;
