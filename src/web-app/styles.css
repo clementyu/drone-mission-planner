@@ -1,67 +1,61 @@
-/* --- Main Layout --- */
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: #f0f2f5;
-  color: #333;
-  overflow: hidden; /* Prevent body scrollbars */
+/* General Body & Layout Styles */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    height: 100vh;
+    overflow: hidden; /* Prevent body scrolling */
 }
 
-.main-container {
-  display: flex;
-  height: 100vh;
+.app-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
 }
 
+/* Sidebar Styles */
 .sidebar {
-  width: 350px;
-  background-color: #ffffff;
-  padding: 20px;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  z-index: 10;
+    width: 320px;
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    z-index: 10;
 }
 
-.map-content {
-  flex: 1; /* Takes up the remaining space */
-  position: relative;
+.sidebar h2 {
+    color: #1c1e21;
+    margin-top: 0;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
 }
 
-.viewer-container {
-  width: 100%;
-  height: 100%;
+.sidebar-section {
+    margin-bottom: 25px;
 }
 
-#map, #maptilerContainer, #cesiumContainer {
-  height: 100%;
-  width: 100%;
-}
-
-#maptilerContainer, #cesiumContainer {
-  display: none; /* Hidden by default */
-}
-
-
-/* --- Sidebar Components --- */
-.sidebar .title {
-  color: #1c1e21;
-  font-size: 24px;
-  margin: 0 0 20px 0;
-  text-align: center;
+.sidebar-section h3 {
+    margin-top: 0;
+    color: #606770;
+    font-size: 16px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
 }
 
 .file-input-label {
-  display: block;
   background-color: #e4e6eb;
   color: #1c1e21;
-  padding: 12px;
+  padding: 12px 20px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
   font-weight: 600;
+  display: block;
   text-align: center;
   transition: background-color 0.3s ease;
 }
@@ -74,108 +68,115 @@ html, body {
   display: none;
 }
 
+/* Main Content Styles */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
 .view-switcher {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin: 20px 0;
+    padding: 10px;
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+    z-index: 5;
 }
 
 .view-switcher button {
-  background-color: #f0f2f5;
-  color: #333;
-  border: 1px solid #ccc;
-  padding: 10px;
+  background-color: #e4e6eb;
+  color: #1c1e21;
+  border: none;
+  padding: 8px 15px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.3s ease, color 0.3s ease;
   border-radius: 5px;
-  transition: background-color 0.3s, color 0.3s;
+  margin: 0 4px;
 }
 
 .view-switcher button.active {
   background-color: #1877f2;
   color: white;
-  border-color: #1877f2;
 }
 
-.waypoint-section {
-  margin-top: 20px;
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
+.viewer-container {
+    flex-grow: 1;
+    position: relative;
 }
 
-.waypoint-section h2 {
-  margin: 0 0 10px 0;
-  font-size: 18px;
+#map, #maptilerContainer, #cesiumContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
 }
 
+#maptilerContainer, #cesiumContainer {
+  display: none;
+}
+
+/* Waypoint List Styles */
 #waypoint-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  flex-grow: 1;
-  overflow-y: auto;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 #waypoint-list li {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
+    padding: 10px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-radius: 4px;
 }
 
-#waypoint-list li:last-child {
-  border-bottom: none;
+#waypoint-list li:hover {
+    background-color: #f5f5f5;
 }
 
 #waypoint-list li.selected {
-  background-color: #e7f3ff;
-  font-weight: bold;
+    background-color: #e7f3ff;
+    color: #1877f2;
+    font-weight: bold;
 }
 
-#status {
-  margin-top: 10px;
-  color: #606770;
-  font-size: 14px;
-}
-
+/* Action Buttons */
 .action-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 20px;
+    display: flex;
+    gap: 10px;
 }
 
 .action-buttons button {
-  padding: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: 5px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s;
+    flex-grow: 1;
+    background-color: #42b72a;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
 }
 
 #downloadBtn {
-  background-color: #42b72a;
-  color: white;
-}
-#downloadBtn:hover {
-  background-color: #36a420;
+    background-color: #6c757d;
 }
 
-#saveBtn {
-  background-color: #1877f2;
-  color: white;
-}
-#saveBtn:hover {
-  background-color: #166fe5;
+/* Other UI Components */
+#status {
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    color: #606770;
+    font-size: 14px;
+    text-align: center;
 }
 
-
-/* --- Context Menu & Modal --- */
+/* Context Menu & Modal Styles remain the same */
 .context-menu {
   display: none;
   position: absolute;
@@ -184,81 +185,26 @@ html, body {
   border-radius: 5px;
   box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
   z-index: 1000;
-}
-
-.context-menu ul {
-  list-style: none;
-  margin: 0;
   padding: 5px 0;
 }
-
-.context-menu li {
-  padding: 8px 15px;
-  cursor: pointer;
-}
-
-.context-menu li:hover {
-  background-color: #f0f0f0;
-}
-
-.context-menu li.disabled {
-  color: #999;
-  cursor: not-allowed;
-  background-color: #f9f9f9;
-}
+.context-menu ul { list-style: none; margin: 0; padding: 0; }
+.context-menu li { padding: 8px 15px; cursor: pointer; }
+.context-menu li:hover { background-color: #f0f0f0; }
+.context-menu li.disabled { color: #999; cursor: not-allowed; background-color: #f9f9f9; }
 
 .modal {
   display: none;
   position: fixed;
   z-index: 2000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
   background-color: rgba(0,0,0,0.5);
   align-items: center;
   justify-content: center;
 }
+.modal-content { background-color: #fefefe; padding: 20px; border-radius: 5px; width: 90%; max-width: 400px; }
+.close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+#waypointForm label { display: block; margin-top: 10px; text-align: left; }
+#waypointForm input, #waypointForm select { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
+#waypointForm button { margin-top: 20px; width: 100%; background-color: #1877f2; color: white; padding: 10px; border: none; border-radius: 5px; }
 
-.modal-content {
-  background-color: #fefefe;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 80%;
-  max-width: 400px;
-  border-radius: 5px;
-}
-
-.close-button {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-#waypointForm label {
-  display: block;
-  margin-top: 10px;
-  text-align: left;
-}
-
-#waypointForm input, #waypointForm select {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-  box-sizing: border-box;
-}
-
-#waypointForm button {
-  margin-top: 20px;
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  background-color: #1877f2;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}

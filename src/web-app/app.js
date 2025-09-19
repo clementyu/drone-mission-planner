@@ -7,10 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const waypointList = document.getElementById('waypoint-list');
 
     const viewButtons = {
-        map: document.getElementById('mapBtn'),
-        earth: document.getElementById('earthBtn'),
         maptilerStreets: document.getElementById('maptilerStreetsBtn'),
         maptiler3d: document.getElementById('maptiler3dBtn'),
+        map: document.getElementById('mapBtn'),
+        earth: document.getElementById('earthBtn'),
         cesium: document.getElementById('cesiumBtn')
     };
 
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let googleMap, googleDataLayer, maptilerMap, cesiumViewer;
     let maptilerApiKey;
     let currentGeoJson = { type: 'FeatureCollection', features: [] };
-    let currentView = 'map';
+    let currentView = 'maptilerStreets'; // Default view
     let activeWaypointId = null;
     let clickPosition = null;
     let waypointCounter = 1;
@@ -66,6 +66,12 @@ document.addEventListener('DOMContentLoaded', () => {
             maptilerMap.on('contextmenu', handleMaptilerRightClick);
             maptilerMap.on('mouseenter', 'points', () => { maptilerMap.getCanvas().style.cursor = 'pointer'; });
             maptilerMap.on('mouseleave', 'points', () => { maptilerMap.getCanvas().style.cursor = ''; });
+
+            // THIS IS THE FIX: Set the initial view after Maptiler is ready
+            maptilerMap.on('load', () => {
+                switchView('maptilerStreets');
+            });
+
         } catch (error) { console.error('Failed to initialize Maptiler:', error); }
     }
 
@@ -108,12 +114,12 @@ document.addEventListener('DOMContentLoaded', () => {
         viewers.maptiler.style.display = isMaptiler ? 'block' : 'none';
         viewers.cesium.style.display = view === 'cesium' ? 'block' : 'none';
         
-        if (view === 'map') googleMap.setMapTypeId('roadmap');
-        if (view === 'earth') googleMap.setMapTypeId('satellite');
-        if (view === 'maptilerStreets') {
+        if (view === 'map' && googleMap) googleMap.setMapTypeId('roadmap');
+        if (view === 'earth' && googleMap) googleMap.setMapTypeId('satellite');
+        if (view === 'maptilerStreets' && maptilerMap) {
             maptilerMap.setStyle(`https://api.maptiler.com/maps/streets-v2/style.json?key=${maptilerApiKey}`);
         }
-        if (view === 'maptiler3d') {
+        if (view === 'maptiler3d' && maptilerMap) {
             maptilerMap.setStyle(`https://api.maptiler.com/maps/satellite/style.json?key=${maptilerApiKey}`);
         }
         
@@ -428,9 +434,9 @@ document.addEventListener('DOMContentLoaded', () => {
         googleDataLayer.forEach(f => googleDataLayer.remove(f));
         googleDataLayer.addGeoJson(geojson);
         
-        if (maptilerMap.isStyleLoaded()) {
+        if (maptilerMap && maptilerMap.isStyleLoaded()) {
             loadMaptilerData();
-        } else {
+        } else if (maptilerMap) {
             maptilerMap.once('styledata', loadMaptilerData);
         }
         
@@ -466,6 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (!bounds.isEmpty()) maptilerMap.fitBounds(bounds, { padding: 50 });
         } else {
+            if(!googleMap) return;
             const bounds = new google.maps.LatLngBounds();
             googleDataLayer.forEach(f => f.getGeometry().forEachLatLng(ll => bounds.extend(ll)));
             if (!bounds.isEmpty()) googleMap.fitBounds(bounds);
