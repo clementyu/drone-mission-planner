@@ -137,3 +137,6 @@ dist
 
 
 .DS_Store
+
+venv/
+venv~/
