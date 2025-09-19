@@ -1,81 +1,38 @@
-:root {
-  --primary-color: #007bff;
-  --light-gray: #f8f9fa;
-  --border-color: #dee2e6;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+/* --- Main Layout --- */
+html, body {
+  height: 100%;
   margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f0f2f5;
   color: #333;
-  background-color: var(--light-gray);
+  overflow: hidden; /* Prevent body scrollbars */
 }
 
-.main-layout {
+.main-container {
   display: flex;
   height: 100vh;
 }
 
 .sidebar {
-  width: 380px;
-  flex-shrink: 0;
+  width: 350px;
   background-color: #ffffff;
-  border-right: 1px solid var(--border-color);
   padding: 20px;
-  overflow-y: auto;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  z-index: 10;
 }
 
-.main-content {
-  flex-grow: 1;
+.map-content {
+  flex: 1; /* Takes up the remaining space */
   position: relative;
 }
 
-.title {
-  color: #1c1e21;
-  font-size: 24px;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.sidebar-section {
-  margin-bottom: 25px;
-}
-
-.sidebar-section h2 {
-  font-size: 16px;
-  color: #6c757d;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 8px;
-  margin-bottom: 15px;
-}
-
-#fileInput {
-  display: none;
-}
-
-.file-input-label {
-  background-color: var(--light-gray);
-  color: #333;
-  padding: 12px 20px;
-  border: 1px solid var(--border-color);
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  display: block;
-  text-align: center;
-  transition: background-color 0.2s ease;
-}
-
-.file-input-label:hover {
-  background-color: #e2e6ea;
-}
-
 .viewer-container {
-  height: 100%;
   width: 100%;
+  height: 100%;
 }
 
 #map, #maptilerContainer, #cesiumContainer {
@@ -84,6 +41,36 @@ body {
 }
 
 #maptilerContainer, #cesiumContainer {
+  display: none; /* Hidden by default */
+}
+
+
+/* --- Sidebar Components --- */
+.sidebar .title {
+  color: #1c1e21;
+  font-size: 24px;
+  margin: 0 0 20px 0;
+  text-align: center;
+}
+
+.file-input-label {
+  display: block;
+  background-color: #e4e6eb;
+  color: #1c1e21;
+  padding: 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.file-input-label:hover {
+  background-color: #d8dbdf;
+}
+
+#fileInput {
   display: none;
 }
 
@@ -91,89 +78,104 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+  margin: 20px 0;
 }
 
-.view-switcher button, .action-buttons button {
-  background-color: #ffffff;
+.view-switcher button {
+  background-color: #f0f2f5;
   color: #333;
-  border: 1px solid var(--border-color);
+  border: 1px solid #ccc;
   padding: 10px;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 600;
   border-radius: 5px;
-  transition: all 0.2s ease;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .view-switcher button.active {
-  background-color: var(--primary-color);
+  background-color: #1877f2;
   color: white;
-  border-color: var(--primary-color);
+  border-color: #1877f2;
 }
 
-.view-switcher button:hover, .action-buttons button:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-}
-
-.action-buttons {
+.waypoint-section {
+  margin-top: 20px;
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: auto; /* Pushes buttons to the bottom */
 }
 
-#saveBtn {
-  background-color: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
-}
-#saveBtn:hover {
-  background-color: #0056b3;
-  color: white;
-}
-
-#waypoint-list-container {
-  flex-grow: 1;
+.waypoint-section h2 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
 }
 
 #waypoint-list {
   list-style: none;
   padding: 0;
   margin: 0;
+  flex-grow: 1;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 5px;
 }
 
 #waypoint-list li {
   padding: 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 5px;
-  margin-bottom: 8px;
+  border-bottom: 1px solid #eee;
   cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
-#waypoint-list li:hover {
-  background-color: var(--light-gray);
-  border-color: #adb5bd;
+#waypoint-list li:last-child {
+  border-bottom: none;
 }
 
 #waypoint-list li.selected {
-  background-color: #e7f1ff;
-  border-color: var(--primary-color);
+  background-color: #e7f3ff;
   font-weight: bold;
 }
 
 #status {
-  margin-top: 15px;
-  color: #6c757d;
+  margin-top: 10px;
+  color: #606770;
   font-size: 14px;
-  text-align: center;
 }
 
-/* Context Menu & Modal Styles */
+.action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.action-buttons button {
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#downloadBtn {
+  background-color: #42b72a;
+  color: white;
+}
+#downloadBtn:hover {
+  background-color: #36a420;
+}
+
+#saveBtn {
+  background-color: #1877f2;
+  color: white;
+}
+#saveBtn:hover {
+  background-color: #166fe5;
+}
+
+
+/* --- Context Menu & Modal --- */
 .context-menu {
   display: none;
   position: absolute;
@@ -185,11 +187,14 @@ body {
 }
 
 .context-menu ul {
-  list-style: none; margin: 0; padding: 5px 0;
+  list-style: none;
+  margin: 0;
+  padding: 5px 0;
 }
 
 .context-menu li {
-  padding: 8px 15px; cursor: pointer;
+  padding: 8px 15px;
+  cursor: pointer;
 }
 
 .context-menu li:hover {
@@ -197,40 +202,63 @@ body {
 }
 
 .context-menu li.disabled {
-  color: #999; cursor: not-allowed;
+  color: #999;
+  cursor: not-allowed;
+  background-color: #f9f9f9;
 }
 
 .modal {
-  display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%;
-  background-color: rgba(0,0,0,0.5);
   display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
   align-items: center;
   justify-content: center;
 }
 
 .modal-content {
-  background-color: #fefefe; padding: 20px; border-radius: 5px; width: 80%; max-width: 400px;
+  background-color: #fefefe;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 400px;
+  border-radius: 5px;
 }
 
 .close-button {
-  color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 #waypointForm label {
-  display: block; margin-top: 10px; text-align: left; font-weight: 600;
+  display: block;
+  margin-top: 10px;
+  text-align: left;
 }
-#waypointForm input {
+
+#waypointForm input, #waypointForm select {
   width: 100%;
   padding: 8px;
   margin-top: 5px;
   box-sizing: border-box;
 }
+
 #waypointForm button {
-  margin-top: 20px; width: 100%; padding: 12px;
-  background-color: var(--primary-color);
+  margin-top: 20px;
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  background-color: #1877f2;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 16px;
 }

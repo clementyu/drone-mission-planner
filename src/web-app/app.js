@@ -98,7 +98,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function switchView(view) {
         currentView = view;
         Object.keys(viewButtons).forEach(key => {
-            viewButtons[key].classList.toggle('active', key === view);
+            if (viewButtons[key]) {
+                viewButtons[key].classList.toggle('active', key === view);
+            }
         });
 
         const isMaptiler = view.startsWith('maptiler');
@@ -123,7 +125,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     Object.keys(viewButtons).forEach(key => {
-        viewButtons[key].addEventListener('click', () => switchView(key));
+        if(viewButtons[key]) {
+            viewButtons[key].addEventListener('click', () => switchView(key));
+        }
     });
 
     // --- WAYPOINT LIST & SIDEBAR UI ---
@@ -182,72 +186,123 @@ document.addEventListener('DOMContentLoaded', () => {
         showContextMenu(event.originalEvent.clientX, event.originalEvent.clientY, onWaypoint);
     }
 
-    window.addEventListener('click', () => contextMenu.style.display = 'none');
-
-    document.getElementById('addWaypoint').addEventListener('click', () => {
-        modalTitle.textContent = 'Add New Waypoint';
-        waypointForm.reset();
-        document.getElementById('waypointId').value = '';
-        document.getElementById('waypointName').value = `Waypoint ${waypointCounter}`;
-        document.getElementById('latitude').value = clickPosition.lat;
-        document.getElementById('longitude').value = clickPosition.lng;
-        waypointModal.style.display = 'flex';
+    window.addEventListener('click', () => {
+        if(contextMenu) contextMenu.style.display = 'none';
     });
 
-    document.getElementById('editWaypoint').addEventListener('click', () => {
-        if (!activeWaypointId) return;
-        const feature = findFeatureById(activeWaypointId);
-        if (feature) {
-            modalTitle.textContent = 'Edit Waypoint';
-            const props = feature.properties;
-            const coords = feature.geometry.coordinates;
-            document.getElementById('waypointId').value = props.id;
-            document.getElementById('waypointName').value = props.name;
-            document.getElementById('latitude').value = coords[1];
-            document.getElementById('longitude').value = coords[0];
-            document.getElementById('altitude').value = props.altitude || 50;
-            document.getElementById('speed').value = props.speed || 10;
+    if(document.getElementById('addWaypoint')){
+        document.getElementById('addWaypoint').addEventListener('click', () => {
+            modalTitle.textContent = 'Add New Waypoint';
+            waypointForm.reset();
+            document.getElementById('waypointId').value = '';
+            document.getElementById('waypointName').value = `Waypoint ${waypointCounter}`;
+            document.getElementById('latitude').value = clickPosition.lat;
+            document.getElementById('longitude').value = clickPosition.lng;
+            populateConnectToDropdown();
             waypointModal.style.display = 'flex';
-        }
-    });
+        });
+    }
 
-    document.getElementById('deleteWaypoint').addEventListener('click', () => {
-        if (!activeWaypointId) return;
-        currentGeoJson.features = currentGeoJson.features.filter(f => f.properties.id !== activeWaypointId);
-        activeWaypointId = null;
-        updateMapData(currentGeoJson);
-    });
-
-    closeButton.addEventListener('click', () => waypointModal.style.display = 'none');
-
-    waypointForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const id = parseInt(document.getElementById('waypointId').value, 10);
-        const name = document.getElementById('waypointName').value;
-        const lat = parseFloat(document.getElementById('latitude').value);
-        const lng = parseFloat(document.getElementById('longitude').value);
-        const alt = parseInt(document.getElementById('altitude').value, 10);
-        const speed = parseInt(document.getElementById('speed').value, 10);
-
-        if (id) {
-            const feature = findFeatureById(id);
+    if(document.getElementById('editWaypoint')){
+        document.getElementById('editWaypoint').addEventListener('click', () => {
+            if (!activeWaypointId) return;
+            const feature = findFeatureById(activeWaypointId);
             if (feature) {
-                feature.geometry.coordinates = [lng, lat];
-                feature.properties.name = name;
-                feature.properties.altitude = alt;
-                feature.properties.speed = speed;
+                modalTitle.textContent = 'Edit Waypoint';
+                const props = feature.properties;
+                const coords = feature.geometry.coordinates;
+                document.getElementById('waypointId').value = props.id;
+                document.getElementById('waypointName').value = props.name;
+                document.getElementById('latitude').value = coords[1];
+                document.getElementById('longitude').value = coords[0];
+                document.getElementById('altitude').value = props.altitude || 50;
+                document.getElementById('speed').value = props.speed || 10;
+                populateConnectToDropdown(props.id);
+                waypointModal.style.display = 'flex';
             }
-        } else {
-            const newId = waypointCounter++;
-            currentGeoJson.features.push({
-                type: 'Feature',
-                geometry: { type: 'Point', coordinates: [lng, lat] },
-                properties: { id: newId, name: name, altitude: alt, speed }
-            });
-        }
-        waypointModal.style.display = 'none';
-        updateMapData(currentGeoJson);
-    });
+        });
+    }
+
+    if(document.getElementById('deleteWaypoint')){
+        document.getElementById('deleteWaypoint').addEventListener('click', () => {
+            if (!activeWaypointId) return;
+            currentGeoJson.features = currentGeoJson.features.filter(f => f.properties.id !== activeWaypointId);
+            activeWaypointId = null;
+            updateMapData(currentGeoJson);
+        });
+    }
+
+    if(closeButton){
+        closeButton.addEventListener('click', () => waypointModal.style.display = 'none');
+    }
+
+    if(waypointForm){
+        waypointForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('waypointId').value, 10);
+            const name = document.getElementById('waypointName').value;
+            const lat = parseFloat(document.getElementById('latitude').value);
+            const lng = parseFloat(document.getElementById('longitude').value);
+            const alt = parseInt(document.getElementById('altitude').value, 10);
+            const speed = parseInt(document.getElementById('speed').value, 10);
+            const connectToId = parseInt(document.getElementById('connectTo').value, 10);
+
+            let newFeature;
+            if (id) {
+                const feature = findFeatureById(id);
+                if (feature) {
+                    feature.geometry.coordinates = [lng, lat, alt];
+                    feature.properties.name = name;
+                    feature.properties.altitude = alt;
+                    feature.properties.speed = speed;
+                    newFeature = feature;
+                }
+            } else {
+                const newId = waypointCounter++;
+                newFeature = {
+                    type: 'Feature',
+                    geometry: { type: 'Point', coordinates: [lng, lat, alt] },
+                    properties: { id: newId, name: name, altitude: alt, speed }
+                };
+                currentGeoJson.features.push(newFeature);
+            }
+
+            if (connectToId && newFeature) {
+                const connectToFeature = findFeatureById(connectToId);
+                if (connectToFeature) {
+                    currentGeoJson.features.push({
+                        type: 'Feature',
+                        geometry: {
+                            type: 'LineString',
+                            coordinates: [
+                                newFeature.geometry.coordinates,
+                                connectToFeature.geometry.coordinates
+                            ]
+                        },
+                        properties: {
+                            name: `Path from ${newFeature.properties.name} to ${connectToFeature.properties.name}`
+                        }
+                    });
+                }
+            }
+
+            waypointModal.style.display = 'none';
+            updateMapData(currentGeoJson);
+        });
+    }
+
+    function populateConnectToDropdown(excludeId = null) {
+        const select = document.getElementById('connectTo');
+        select.innerHTML = '<option value="">None</option>';
+        currentGeoJson.features.forEach(f => {
+            if (f.geometry.type === 'Point' && f.properties.id !== excludeId) {
+                const option = document.createElement('option');
+                option.value = f.properties.id;
+                option.textContent = f.properties.name;
+                select.appendChild(option);
+            }
+        });
+    }
 
     // --- DATA & FILE HANDLING ---
     fileInput.addEventListener('change', async (e) => {
@@ -285,35 +340,55 @@ document.addEventListener('DOMContentLoaded', () => {
         waypointCounter = maxId + 1;
     }
 
-    // --- MAP DATA & STYLE UPDATES ---
     function updateMapHighlights() {
-        // Maptiler: Update paint properties to highlight the selected waypoint
         if (maptilerMap && maptilerMap.getLayer('points')) {
-            maptilerMap.setPaintProperty('points', 'circle-color', [
-                'case',
-                ['==', ['get', 'id'], activeWaypointId || -1],
-                '#FFD700', // Gold color for selected
-                '#FFFFFF'  // Default white
-            ]);
-            maptilerMap.setPaintProperty('points', 'circle-stroke-color', [
-                'case',
-                ['==', ['get', 'id'], activeWaypointId || -1],
-                '#FFA500', // Orange stroke for selected
-                '#00FFFF'  // Default cyan
-            ]);
+            maptilerMap.setPaintProperty('points', 'circle-color', ['case', ['==', ['get', 'id'], activeWaypointId || null], '#FFD700', '#FFFFFF']);
+            maptilerMap.setPaintProperty('points', 'circle-stroke-color', ['case', ['==', ['get', 'id'], activeWaypointId || null], '#FFA500', '#00FFFF']);
         }
-
-        // Google Maps: Override style for the selected feature
-        googleDataLayer.revertStyle();
-        googleDataLayer.overrideStyle(
-            googleDataLayer.getFeatureById(activeWaypointId), 
-            { icon: { url: 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png' } }
-        );
+        if (googleDataLayer) {
+            googleDataLayer.revertStyle();
+            if (activeWaypointId) {
+                const featureToHighlight = findFeatureById(activeWaypointId);
+                 if (featureToHighlight) {
+                    googleDataLayer.forEach(feature => {
+                        if (feature.getProperty('id') === activeWaypointId) {
+                             googleDataLayer.overrideStyle(feature, { icon: { url: 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png' } });
+                        }
+                    });
+                 }
+            }
+        }
+    }
+    
+    function generateAltitudeLines(geojson) {
+        const lines = { type: 'FeatureCollection', features: [] };
+        geojson.features.forEach(f => {
+            if (f.geometry.type === 'Point') {
+                const coords = f.geometry.coordinates;
+                const altitude = f.properties.altitude || 0;
+                if (altitude > 0) {
+                    lines.features.push({
+                        type: 'Feature',
+                        geometry: {
+                            type: 'LineString',
+                            coordinates: [
+                                [coords[0], coords[1], altitude],
+                                [coords[0], coords[1], 0]
+                            ]
+                        }
+                    });
+                }
+            }
+        });
+        return lines;
     }
 
     async function updateMapData(geojson) {
         currentGeoJson = geojson;
         renderWaypointList();
+        updateMapHighlights();
+
+        const altitudeLines = generateAltitudeLines(geojson);
 
         const loadMaptilerData = () => {
             if (maptilerMap.getSource('missionData')) {
@@ -323,7 +398,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 maptilerMap.addLayer({ id: 'lines', type: 'line', source: 'missionData', paint: { 'line-color': '#00FFFF', 'line-width': 3 }, filter: ['==', '$type', 'LineString'] });
                 maptilerMap.addLayer({ id: 'points', type: 'circle', source: 'missionData', paint: { 'circle-radius': 5, 'circle-stroke-width': 2 }, filter: ['==', '$type', 'Point'] });
             }
-            updateMapHighlights(); // Apply highlights
+
+            if (maptilerMap.getSource('altitudeLines')) {
+                maptilerMap.getSource('altitudeLines').setData(altitudeLines);
+            } else {
+                maptilerMap.addSource('altitudeLines', { type: 'geojson', data: altitudeLines });
+                maptilerMap.addLayer({
+                    id: 'altitude-lines',
+                    type: 'line',
+                    source: 'altitudeLines',
+                    paint: {
+                        'line-color': '#FFFFFF',
+                        'line-width': 1,
+                        'line-dasharray': [2, 2]
+                    }
+                });
+            }
+
             if (currentView === 'maptiler3d') {
                 if (!maptilerMap.getSource('maptiler-dem')) {
                     maptilerMap.addSource('maptiler-dem', { 'type': 'raster-dem', 'url': `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${maptilerApiKey}` });
@@ -336,7 +427,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         googleDataLayer.forEach(f => googleDataLayer.remove(f));
         googleDataLayer.addGeoJson(geojson);
-        updateMapHighlights();
         
         if (maptilerMap.isStyleLoaded()) {
             loadMaptilerData();
@@ -348,12 +438,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const cesiumDataSource = await Cesium.GeoJsonDataSource.load(geojson, { stroke: Cesium.Color.CYAN, strokeWidth: 3 });
         await cesiumViewer.dataSources.add(cesiumDataSource);
 
+        altitudeLines.features.forEach(line => {
+            const positions = line.geometry.coordinates.flat();
+            cesiumViewer.entities.add({
+                polyline: {
+                    positions: Cesium.Cartesian3.fromDegreesArrayHeights(positions),
+                    width: 1,
+                    material: new Cesium.PolylineDashMaterialProperty({
+                        color: Cesium.Color.WHITE,
+                    }),
+                },
+            });
+        });
+
         zoomToFit();
     }
 
     function zoomToFit() {
         if (!currentGeoJson || currentGeoJson.features.length === 0) return;
-
         if (currentView === 'cesium') {
             cesiumViewer.flyTo(cesiumViewer.dataSources.get(0));
         } else if (currentView.startsWith('maptiler')) {
@@ -417,3 +519,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
