@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadBtn = document.getElementById('downloadBtn');
     const saveBtn = document.getElementById('saveBtn');
     const waypointList = document.getElementById('waypoint-list');
+    const loadingOverlay = document.getElementById('loadingOverlay');
 
     const viewButtons = {
         maptilerStreets: document.getElementById('maptilerStreetsBtn'),
@@ -30,10 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let googleMap, googleDataLayer, maptilerMap, cesiumViewer;
     let maptilerApiKey;
     let currentGeoJson = { type: 'FeatureCollection', features: [] };
-    let currentView = 'maptilerStreets'; // Default view
+    let currentView = 'maptilerStreets';
     let activeWaypointId = null;
     let clickPosition = null;
     let waypointCounter = 1;
+    let maptilerLoadTimeout; // For the loading spinner timeout
 
     // --- INITIALIZATION ---
     loadGoogleMapsScript();
@@ -63,14 +65,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 center: [0, 0],
                 zoom: 1
             });
+
             maptilerMap.on('contextmenu', handleMaptilerRightClick);
             maptilerMap.on('mouseenter', 'points', () => { maptilerMap.getCanvas().style.cursor = 'pointer'; });
             maptilerMap.on('mouseleave', 'points', () => { maptilerMap.getCanvas().style.cursor = ''; });
             
-            // THE FIX: Set the initial view and add a permanent data-reload listener
-            // only after the map is fully loaded for the first time.
             maptilerMap.on('load', () => {
                 switchView('maptilerStreets');
+                // This listener ensures data is re-added after ANY style change
                 maptilerMap.on('styledata', () => {
                     if (maptilerMap.isStyleLoaded()) {
                         updateMapData(currentGeoJson);
@@ -108,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- VIEW SWITCHING ---
     function switchView(view) {
-        if (!maptilerMap || !googleMap || !cesiumViewer) return; // Prevent running before init
+        if (!maptilerMap || !googleMap || !cesiumViewer) return;
         currentView = view;
         Object.keys(viewButtons).forEach(key => {
             if (viewButtons[key]) {
@@ -124,15 +126,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (view === 'map') googleMap.setMapTypeId('roadmap');
         if (view === 'earth') googleMap.setMapTypeId('satellite');
         
-        // This is now safe because switchView is only called after init
+        // Let the 'styledata' event handle reloading data for Maptiler
         if (view === 'maptilerStreets') {
             maptilerMap.setStyle(`https://api.maptiler.com/maps/streets-v2/style.json?key=${maptilerApiKey}`);
         }
         if (view === 'maptiler3d') {
+            loadingOverlay.style.display = 'flex';
+            clearTimeout(maptilerLoadTimeout); 
+            maptilerLoadTimeout = setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+                statusEl.textContent = "3D terrain timeout. The connection may be slow.";
+            }, 3000); // 3-second timeout
+
             maptilerMap.setStyle(`https://api.maptiler.com/maps/satellite/style.json?key=${maptilerApiKey}`);
         }
         
-        // Non-Maptiler views don't need the 'styledata' event, so update them directly
         if (!isMaptiler) {
             updateMapData(currentGeoJson);
         }
@@ -143,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
             viewButtons[key].addEventListener('click', () => switchView(key));
         }
     });
-
+    
     // --- WAYPOINT LIST & SIDEBAR UI ---
     function renderWaypointList() {
         waypointList.innerHTML = '';
@@ -406,7 +414,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const altitudeLines = generateAltitudeLines(geojson);
 
         const loadMaptilerData = () => {
-             // Remove old layers and sources before adding new ones
             if (maptilerMap.getLayer('points')) maptilerMap.removeLayer('points');
             if (maptilerMap.getLayer('lines')) maptilerMap.removeLayer('lines');
             if (maptilerMap.getLayer('altitude-lines')) maptilerMap.removeLayer('altitude-lines');
@@ -415,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
            
             maptilerMap.addSource('missionData', { type: 'geojson', data: geojson });
             maptilerMap.addLayer({ id: 'lines', type: 'line', source: 'missionData', paint: { 'line-color': '#00FFFF', 'line-width': 3 }, filter: ['==', '$type', 'LineString'] });
-            maptilerMap.addLayer({ id: 'points', type: 'circle', source: 'missionData', paint: { 'circle-radius': 5, 'circle-stroke-width': 2 }, filter: ['==', '$type', 'Point'] });
+            maptilerMap.addLayer({ id: 'points', type: 'circle', source: 'missionData', paint: { 'circle-radius': 5, 'circle-stroke-width': 2, 'circle-color': '#FFFFFF' }, filter: ['==', '$type', 'Point'] });
             
             maptilerMap.addSource('altitudeLines', { type: 'geojson', data: altitudeLines });
             maptilerMap.addLayer({
@@ -429,14 +436,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            updateMapHighlights(); // Re-apply highlights after layers are added
+            updateMapHighlights(); 
 
             if (currentView === 'maptiler3d') {
                 if (!maptilerMap.getSource('maptiler-dem')) {
                     maptilerMap.addSource('maptiler-dem', { 'type': 'raster-dem', 'url': `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${maptilerApiKey}` });
                 }
                 maptilerMap.setTerrain({ 'source': 'maptiler-dem', 'exaggeration': 1.5 });
+                maptilerMap.once('idle', () => { 
+                     clearTimeout(maptilerLoadTimeout);
+                     loadingOverlay.style.display = 'none';
+                });
             } else {
+                 clearTimeout(maptilerLoadTimeout);
+                 loadingOverlay.style.display = 'none';
                 if (maptilerMap.getSource('maptiler-dem')) maptilerMap.setTerrain(null);
             }
         };

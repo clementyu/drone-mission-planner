@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Drone Mission Planner</title>
+  <!-- FIX: Added a generic favicon to prevent 404 errors -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
   <!-- Add MapLibre and CesiumJS CSS -->
   <link href='https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css' rel='stylesheet' />
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
@@ -36,54 +38,57 @@
     <!-- Main Content -->
     <div class="main-content">
       <div class="view-switcher">
-        <button id="maptilerStreetsBtn" class="active">Maptiler Streets</button>
-        <button id="maptiler3dBtn">Maptiler 3D</button>
-        <button id="mapBtn">Google Map</button>
-        <button id="earthBtn">Google Earth</button>
-        <button id="cesiumBtn">Cesium 3D</button>
+          <button id="maptilerStreetsBtn" class="active">Maptiler Streets</button>
+          <button id="maptiler3dBtn">Maptiler 3D</button>
+          <button id="mapBtn">Google Map</button>
+          <button id="earthBtn">Google Earth</button>
+          <button id="cesiumBtn">Cesium 3D</button>
       </div>
       <div class="viewer-container">
         <div id="map"></div>
         <div id="maptilerContainer"></div>
         <div id="cesiumContainer"></div>
+        <div id="loadingOverlay" class="loading-overlay">
+          <div class="spinner"></div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Right-click Context Menu -->
   <div id="contextMenu" class="context-menu">
-    <ul>
-      <li id="addWaypoint">Add Waypoint</li>
-      <li id="editWaypoint" class="disabled">Edit Waypoint</li>
-      <li id="deleteWaypoint" class="disabled">Delete Waypoint</li>
-    </ul>
+      <ul>
+        <li id="addWaypoint">Add Waypoint</li>
+        <li id="editWaypoint" class="disabled">Edit Waypoint</li>
+        <li id="deleteWaypoint" class="disabled">Delete Waypoint</li>
+      </ul>
   </div>
 
   <!-- Waypoint Editor Modal -->
-  <div id="waypointModal" class="modal">
-    <div class="modal-content">
-      <span class="close-button">&times;</span>
-      <h2 id="modalTitle">Edit Waypoint</h2>
-      <form id="waypointForm">
-        <input type="hidden" id="waypointId">
-        <label for="waypointName">Name:</label>
-        <input type="text" id="waypointName" required>
-        <label for="latitude">Latitude:</label>
-        <input type="text" id="latitude" required>
-        <label for="longitude">Longitude:</label>
-        <input type="text" id="longitude" required>
-        <label for="altitude">Altitude (meters):</label>
-        <input type="number" id="altitude" value="50">
-        <label for="speed">Drone Speed (m/s):</label>
-        <input type="number" id="speed" value="10">
-        <label for="connectTo">Connect to Waypoint:</label>
-        <select id="connectTo">
-            <option value="">None</option>
-        </select>
-        <button type="submit">Save</button>
-      </form>
+    <div id="waypointModal" class="modal">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2 id="modalTitle">Edit Waypoint</h2>
+        <form id="waypointForm">
+          <input type="hidden" id="waypointId">
+          <label for="waypointName">Name:</label>
+          <input type="text" id="waypointName" required>
+          <label for="latitude">Latitude:</label>
+          <input type="text" id="latitude" required>
+          <label for="longitude">Longitude:</label>
+          <input type="text" id="longitude" required>
+          <label for="altitude">Altitude (meters):</label>
+          <input type="number" id="altitude" value="50">
+          <label for="speed">Drone Speed (m/s):</label>
+          <input type="number" id="speed" value="10">
+          <label for="connectTo">Connect to Waypoint:</label>
+          <select id="connectTo">
+              <option value="">None</option>
+          </select>
+          <button type="submit">Save</button>
+        </form>
+      </div>
     </div>
-  </div>
   
   <script src='https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js'></script>
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/Cesium.js"></script>
