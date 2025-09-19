@@ -115,7 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
             maptilerMap.setStyle(`https://api.maptiler.com/maps/satellite/style.json?key=${maptilerApiKey}`);
         }
         
-        updateMapData(currentGeoJson);
+        if (isMaptiler) {
+            maptilerMap.once('styledata', () => updateMapData(currentGeoJson));
+        } else {
+            updateMapData(currentGeoJson);
+        }
     }
 
     Object.keys(viewButtons).forEach(key => {
@@ -141,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             li.addEventListener('click', () => {
                 activeWaypointId = props.id;
+                updateMapHighlights();
                 renderWaypointList();
             });
 
@@ -162,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clickPosition = { lat: event.latLng.lat(), lng: event.latLng.lng() };
         const onWaypoint = !!event.feature;
         activeWaypointId = onWaypoint ? event.feature.getProperty('id') : null;
+        updateMapHighlights();
         renderWaypointList();
         showContextMenu(event.domEvent.clientX, event.domEvent.clientY, onWaypoint);
     }
@@ -171,6 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const features = maptilerMap.queryRenderedFeatures(event.point, { layers: ['points'] });
         const onWaypoint = features.length > 0;
         activeWaypointId = onWaypoint ? features[0].properties.id : null;
+        updateMapHighlights();
         renderWaypointList();
         showContextMenu(event.originalEvent.clientX, event.originalEvent.clientY, onWaypoint);
     }
@@ -274,9 +281,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 f.properties.id = waypointCounter++;
             }
         });
-        // Ensure waypointCounter is higher than any existing ID
         const maxId = geojson.features.reduce((max, f) => (f.properties && f.properties.id > max ? f.properties.id : max), 0);
         waypointCounter = maxId + 1;
+    }
+
+    // --- MAP DATA & STYLE UPDATES ---
+    function updateMapHighlights() {
+        // Maptiler: Update paint properties to highlight the selected waypoint
+        if (maptilerMap && maptilerMap.getLayer('points')) {
+            maptilerMap.setPaintProperty('points', 'circle-color', [
+                'case',
+                ['==', ['get', 'id'], activeWaypointId || -1],
+                '#FFD700', // Gold color for selected
+                '#FFFFFF'  // Default white
+            ]);
+            maptilerMap.setPaintProperty('points', 'circle-stroke-color', [
+                'case',
+                ['==', ['get', 'id'], activeWaypointId || -1],
+                '#FFA500', // Orange stroke for selected
+                '#00FFFF'  // Default cyan
+            ]);
+        }
+
+        // Google Maps: Override style for the selected feature
+        googleDataLayer.revertStyle();
+        googleDataLayer.overrideStyle(
+            googleDataLayer.getFeatureById(activeWaypointId), 
+            { icon: { url: 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png' } }
+        );
     }
 
     async function updateMapData(geojson) {
@@ -289,17 +321,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 maptilerMap.addSource('missionData', { type: 'geojson', data: geojson });
                 maptilerMap.addLayer({ id: 'lines', type: 'line', source: 'missionData', paint: { 'line-color': '#00FFFF', 'line-width': 3 }, filter: ['==', '$type', 'LineString'] });
-                maptilerMap.addLayer({ id: 'points', type: 'circle', source: 'missionData', paint: { 'circle-radius': 5, 'circle-color': '#FFFFFF', 'circle-stroke-color': '#00FFFF', 'circle-stroke-width': 2 }, filter: ['==', '$type', 'Point'] });
+                maptilerMap.addLayer({ id: 'points', type: 'circle', source: 'missionData', paint: { 'circle-radius': 5, 'circle-stroke-width': 2 }, filter: ['==', '$type', 'Point'] });
             }
-
+            updateMapHighlights(); // Apply highlights
             if (currentView === 'maptiler3d') {
                 if (!maptilerMap.getSource('maptiler-dem')) {
-                    maptilerMap.addSource('maptiler-dem', { 'type': 'raster-dem', 'url': `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${maptilerApiKey}`, 'tileSize': 256 });
+                    maptilerMap.addSource('maptiler-dem', { 'type': 'raster-dem', 'url': `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${maptilerApiKey}` });
                 }
                 maptilerMap.setTerrain({ 'source': 'maptiler-dem', 'exaggeration': 1.5 });
-                if (!maptilerMap.getLayer('sky')) {
-                    maptilerMap.addLayer({ 'id': 'sky', 'type': 'sky', 'paint': { 'sky-type': 'atmosphere', 'sky-atmosphere-sun-intensity': 5 } });
-                }
             } else {
                 if (maptilerMap.getSource('maptiler-dem')) maptilerMap.setTerrain(null);
             }
@@ -307,11 +336,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         googleDataLayer.forEach(f => googleDataLayer.remove(f));
         googleDataLayer.addGeoJson(geojson);
+        updateMapHighlights();
         
         if (maptilerMap.isStyleLoaded()) {
             loadMaptilerData();
         } else {
-            maptilerMap.once('style.load', loadMaptilerData);
+            maptilerMap.once('styledata', loadMaptilerData);
         }
         
         cesiumViewer.dataSources.removeAll();
@@ -336,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             const bounds = new google.maps.LatLngBounds();
             googleDataLayer.forEach(f => f.getGeometry().forEachLatLng(ll => bounds.extend(ll)));
-            googleMap.fitBounds(bounds);
+            if (!bounds.isEmpty()) googleMap.fitBounds(bounds);
         }
     }
 
@@ -387,4 +417,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
