@@ -43,6 +43,20 @@ For the best experience, run both the Node.js and Python servers simultaneously.
     npm install
     cd ../.. 
     ```
+  * **Set up Python Virtual Environment and Install Dependencies:**
+  From the project's root directory, create and activate a virtual environment. This keeps your project's dependencies isolated.
+
+  ```bash
+    # Create the virtual environment
+    python3 -m venv venv
+    
+    # Activate the environment (macOS/Linux)
+    source venv/bin/activate
+    
+    # Or activate the environment (Windows)
+    # .\venv\Scripts\activate
+  ```
+
   * **Install Python dependencies:**
     ```bash
     pip install -r src/python-backend/requirements.txt
@@ -54,7 +68,8 @@ For the best experience, run both the Node.js and Python servers simultaneously.
   * **Start both servers:**
     From the **root of the project**, run the script:
     ```bash
-    ./src/start-servers.sh
+    cd src
+    ./start-servers.sh
     ```
   * The application will be available at `http://localhost:3000`.
 
