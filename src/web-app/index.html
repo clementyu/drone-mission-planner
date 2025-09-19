@@ -3,60 +3,78 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drone Mission Uploader</title>
-  <!-- Add MapLibre and CesiumJS CSS -->
+  <title>Drone Mission Editor</title>
   <link href='https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css' rel='stylesheet' />
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <h1 class="title">Upload Mission File</h1>
-    
-    <label for="fileInput" class="file-input-label">
-      Upload a KML/KMZ File
-    </label>
-    <input type="file" id="fileInput" accept=".kml,.kmz">
-    
-    <div class="viewer-container">
-      <div id="map"></div>
-      <div id="maptilerContainer"></div>
-      <div id="cesiumContainer"></div>
+
+  <div class="main-layout">
+    <!-- Sidebar for controls and waypoint list -->
+    <div class="sidebar">
+      <h1 class="title">Mission Editor</h1>
+      
+      <div class="sidebar-section">
+        <label for="fileInput" class="file-input-label">
+          Upload KML/KMZ
+        </label>
+        <input type="file" id="fileInput" accept=".kml,.kmz">
+      </div>
+
+      <div class="sidebar-section">
+          <h2>View Options</h2>
+          <div class="view-switcher">
+            <button id="mapBtn" class="active">Map</button>
+            <button id="earthBtn">Earth</button>
+            <button id="maptilerStreetsBtn">Maptiler</button>
+            <button id="maptiler3dBtn">Maptiler 3D</button>
+            <button id="cesiumBtn">Cesium 3D</button>
+          </div>
+      </div>
+      
+      <div class="sidebar-section" id="waypoint-list-container">
+        <h2>Mission Waypoints</h2>
+        <ul id="waypoint-list">
+          <!-- Waypoints will be dynamically added here -->
+        </ul>
+        <p id="status">Upload a file or right-click the map to add a waypoint.</p>
+      </div>
+
+      <div class="sidebar-section action-buttons">
+          <button id="saveBtn">Save Mission to KML</button>
+          <button id="downloadBtn">Download Processed KML</button>
+      </div>
     </div>
 
-    <!-- 5-Way View Switcher -->
-    <div class="view-switcher">
-      <button id="mapBtn" class="active">Map</button>
-      <button id="earthBtn">Earth</button>
-      <button id="maptilerStreetsBtn">Maptiler Streets</button>
-      <button id="maptilerSatelliteBtn">Maptiler Satellite</button>
-      <button id="cesiumBtn">Cesium 3D</button>
+    <!-- Main content area for the map viewers -->
+    <div class="main-content">
+      <div class="viewer-container">
+        <div id="map"></div>
+        <div id="maptilerContainer"></div>
+        <div id="cesiumContainer"></div>
+      </div>
     </div>
-
-    <div class="action-buttons">
-        <button id="downloadBtn">Download Processed KML</button>
-        <button id="saveBtn">Save Mission</button>
-    </div>
-    <p id="status">Select a mission file or right-click on the map to begin.</p>
   </div>
 
-  <!-- START: Missing HTML to be added -->
-  <!-- Right-click Context Menu -->
+  <!-- Right-click Context Menu (remains absolutely positioned) -->
   <div id="contextMenu" class="context-menu">
     <ul>
-      <li id="addWaypoint">Add Waypoint</li>
-      <li id="editWaypoint" class="disabled">Edit Waypoint</li>
-      <li id="deleteWaypoint" class="disabled">Delete Waypoint</li>
+      <li id="addWaypoint">Add Waypoint Here</li>
+      <li id="editWaypoint" class="disabled">Edit Selected Waypoint</li>
+      <li id="deleteWaypoint" class="disabled">Delete Selected Waypoint</li>
     </ul>
   </div>
 
-  <!-- Waypoint Editor Modal -->
+  <!-- Waypoint Editor Modal (remains a centered popup) -->
   <div id="waypointModal" class="modal">
     <div class="modal-content">
       <span class="close-button">&times;</span>
       <h2 id="modalTitle">Edit Waypoint</h2>
       <form id="waypointForm">
         <input type="hidden" id="waypointId">
+        <label for="waypointName">Name:</label>
+        <input type="text" id="waypointName" required>
         <label for="latitude">Latitude:</label>
         <input type="text" id="latitude" required>
         <label for="longitude">Longitude:</label>
@@ -65,15 +83,14 @@
         <input type="number" id="altitude" value="50">
         <label for="speed">Drone Speed (m/s):</label>
         <input type="number" id="speed" value="10">
-        <button type="submit">Save</button>
+        <button type="submit">Save Changes</button>
       </form>
     </div>
   </div>
-  <!-- END: Missing HTML to be added -->
   
-  <!-- Load MapLibre and CesiumJS -->
   <script src='https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js'></script>
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/Cesium.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
+
