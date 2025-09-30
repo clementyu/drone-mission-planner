@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Grand Canyon Drone Mission</name>
+    <description>A scenic flight path with altitude changes over the Grand Canyon.</description>
+
+    <Style id="flightPathStyle">
+      <LineStyle>
+        <color>ff00aaff</color> <!-- Bright Pink -->
+        <width>3</width>
+      </LineStyle>
+    </Style>
+
+    <!-- The connecting flight path -->
+    <Placemark>
+      <name>Flight Path</name>
+      <styleUrl>#flightPathStyle</styleUrl>
+      <LineString>
+        <tessellate>1</tessellate>
+        <altitudeMode>absolute</altitudeMode>
+        <coordinates>
+          -112.115,36.100,2200
+          -112.110,36.095,1200
+          -112.105,36.100,2200
+        </coordinates>
+      </LineString>
+    </Placemark>
+
+    <!-- Indexed Waypoints -->
+    <Placemark>
+      <name>1: South Rim Start</name>
+      <Point>
+        <altitudeMode>absolute</altitudeMode>
+        <coordinates>-112.115,36.100,2200</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>2: Colorado River Flyover</name>
+      <Point>
+        <altitudeMode>absolute</altitudeMode>
+        <coordinates>-112.110,36.095,1200</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>3: North Rim View</name>
+      <Point>
+        <altitudeMode>absolute</altitudeMode>
+        <coordinates>-112.105,36.100,2200</coordinates>
+      </Point>
+    </Placemark>
+
+  </Document>
+</kml>

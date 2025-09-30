@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Create a Python virtual environment if it doesn't exist
+if [ ! -d "venv" ]; then
+    echo "Creating Python virtual environment..." && python3 -m venv venv
+fi    
+
 # Navigate to the server directory, install dependencies, and start the Node.js server in the background
 echo "Starting Node.js server in the background..."
 (cd server && npm install && npm start) &
