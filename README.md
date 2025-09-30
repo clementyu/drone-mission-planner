@@ -97,8 +97,8 @@ tree.insert(0, etree.Comment(' processed! '))
 # --- END OF CUSTOM ALGORITHM ---
 ```
 
-1. **Understand the Data Structure:** At the integration point, the KML file has been parsed into an lxml XML tree structure, available in the tree variable. You can use the powerful lxml library to manipulate this tree in any way you need.  
-2. **Add Your Custom Logic:** Replace the line tree.insert(0, etree.Comment(' processed\! ')) with your own Python code. For example, you could:  
+2. **Understand the Data Structure:** At the integration point, the KML file has been parsed into an lxml XML tree structure, available in the tree variable. You can use the powerful lxml library to manipulate this tree in any way you need.  
+3. **Add Your Custom Logic:** Replace the line tree.insert(0, etree.Comment(' processed\! ')) with your own Python code. For example, you could:  
    * Iterate through all Placemark elements and adjust their coordinates.  
    * Add new Placemark elements based on some calculation.  
    * Remove or modify existing elements.
