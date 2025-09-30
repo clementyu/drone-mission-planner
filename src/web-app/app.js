@@ -542,7 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'processed.kml';
+            a.download = 'processed.zip';
             a.click();
             URL.revokeObjectURL(url);
             statusEl.textContent = 'Download started';
@@ -551,4 +551,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-

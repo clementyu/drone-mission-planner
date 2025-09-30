@@ -32,10 +32,18 @@ def process_kml():
         tree = etree.fromstring(kml_content, parser)
         tree.insert(0, etree.Comment(' processed! '))
         processed_kml_string = etree.tostring(tree, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+
+        # Create an in-memory zip file
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            zipf.writestr('processed_by_python.kml', processed_kml_string)
+        
+        zip_buffer.seek(0)
+
         return Response(
-            processed_kml_string,
-            mimetype='application/vnd.google-earth.kml+xml',
-            headers={'Content-Disposition': 'attachment;filename=processed_by_python.kml'}
+            zip_buffer.getvalue(),
+            mimetype='application/zip',
+            headers={'Content-Disposition': 'attachment;filename=processed_mission.zip'}
         )
     except Exception as e:
         print(f"Error in /process-kml: {e}")
@@ -80,4 +88,3 @@ def generate_kml_from_json():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)
-

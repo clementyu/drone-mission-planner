@@ -4,16 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Drone Mission Planner</title>
-  <!-- FIX: Added a generic favicon to prevent 404 errors -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
-  <!-- Add MapLibre and CesiumJS CSS -->
   <link href='https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css' rel='stylesheet' />
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="app-container">
-    <!-- Sidebar -->
     <div class="sidebar">
       <h2>Mission Control</h2>
       <div class="sidebar-section">
@@ -25,17 +22,15 @@
       <div class="sidebar-section">
         <h3>Waypoints</h3>
         <ul id="waypoint-list">
-          <!-- Waypoints will be dynamically added here -->
-        </ul>
+          </ul>
       </div>
        <div class="sidebar-section action-buttons">
         <button id="saveBtn">Save Mission</button>
-        <button id="downloadBtn">Download Processed KML</button>
+        <button id="downloadBtn">Download Processed ZIP</button>
       </div>
       <p id="status">Select a mission file or right-click on the map to begin.</p>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
       <div class="view-switcher">
           <button id="maptilerStreetsBtn" class="active">Maptiler Streets</button>
@@ -55,7 +50,6 @@
     </div>
   </div>
 
-  <!-- Right-click Context Menu -->
   <div id="contextMenu" class="context-menu">
       <ul>
         <li id="addWaypoint">Add Waypoint</li>
@@ -64,8 +58,7 @@
       </ul>
   </div>
 
-  <!-- Waypoint Editor Modal -->
-    <div id="waypointModal" class="modal">
+  <div id="waypointModal" class="modal">
       <div class="modal-content">
         <span class="close-button">&times;</span>
         <h2 id="modalTitle">Edit Waypoint</h2>
@@ -95,4 +88,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-
